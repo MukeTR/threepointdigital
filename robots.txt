@@ -1,0 +1,22 @@
+# Three Point Digital
+User-agent: *
+Allow: /
+Disallow: /images/_original_backup/
+
+# Yapay zeka / arama botları için açık erişim
+User-agent: Googlebot
+Allow: /
+User-agent: Bingbot
+Allow: /
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://threepointdigital.com/sitemap.xml
