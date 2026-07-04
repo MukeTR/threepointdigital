@@ -1,0 +1,13 @@
+{
+  "name": "threepointdigital",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Three Point Digital — E-Ticaret Pazaryeri Yönetimi (statik site)",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node -e \"console.log('Statik site — derleme adımı gerekmiyor')\"",
+    "start": "node server.js"
+  }
+}

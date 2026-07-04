@@ -7,3 +7,7 @@ images/_original_backup/
 
 # Geçici / log dosyaları
 *.log
+
+# Node
+node_modules/
+npm-debug.log*
