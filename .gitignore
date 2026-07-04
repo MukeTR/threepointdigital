@@ -1,0 +1,9 @@
+# İşletim sistemi
+.DS_Store
+Thumbs.db
+
+# Orijinal logo yedekleri (repoya dahil değil)
+images/_original_backup/
+
+# Geçici / log dosyaları
+*.log

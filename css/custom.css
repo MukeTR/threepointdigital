@@ -1,0 +1,363 @@
+/* =============================================================
+   Three Point Digital — genişletme stilleri
+   (ana tasarımı bozmadan üzerine eklenen katman)
+   ============================================================= */
+
+/* Aktif menü öğesi */
+.nav-links a.active { color: var(--orange); }
+
+/* ---------------------------------------------------------------
+   Landing: kayan marka şeridi (logo marquee)
+   Renkler korunur — logolar tam renkli, sadece kenarlarda yumuşama
+   --------------------------------------------------------------- */
+.brand-marquee-section {
+  background: var(--white);
+  padding: 6rem 0 6.5rem;
+  overflow: hidden;
+}
+.brand-marquee-head {
+  max-width: 1400px;
+  margin: 0 auto 3rem;
+  padding: 0 4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+.brand-marquee-head .references-count { line-height: .9; }
+
+.brand-lane {
+  position: relative;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
+.brand-lane + .brand-lane { margin-top: 2.2rem; }
+
+.brand-lane-track {
+  display: flex;
+  align-items: center;
+  gap: 3.5rem;
+  width: max-content;
+  animation: brandScroll 90s linear infinite;
+  will-change: transform;
+}
+.brand-lane-track.reverse { animation-direction: reverse; }
+.brand-lane:hover .brand-lane-track { animation-play-state: paused; }
+
+/* Tek boy logo — hepsi aynı yükseklikte, ortak hizada (nizami) */
+.brand-logo {
+  flex: 0 0 auto;
+  width: 168px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: .92;
+  transition: opacity .3s, transform .3s;
+}
+.brand-logo:hover { opacity: 1; transform: translateY(-3px); }
+.brand-logo img {
+  height: 42px;          /* tüm logolar aynı yükseklik → küçükler büyür */
+  width: auto;
+  max-width: 130px;      /* çok geniş logolar taşmasın */
+  object-fit: contain;
+  display: block;
+}
+
+@keyframes brandScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-lane-track { animation: none; }
+}
+
+/* ---------------------------------------------------------------
+   Alt sayfa (Referanslar / Hakkımızda) ortak başlık bloğu
+   --------------------------------------------------------------- */
+.page-hero {
+  position: relative;
+  background: var(--gray-light);
+  padding: 11rem 4rem 4.5rem;
+  border-bottom: 1px solid var(--gray-mid);
+  overflow: hidden;
+}
+.page-hero-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+.page-hero .hero-accent-line {
+  position: absolute;
+  bottom: auto; top: 6.5rem; left: 0;
+  height: 90px;
+}
+.page-hero .section-title { margin-bottom: 1rem; max-width: 20ch; }
+.page-hero .section-desc { max-width: 620px; margin-bottom: 0; }
+.page-hero-shape {
+  position: absolute; top: -30%; right: -8%;
+  width: 45vw; height: 130%;
+  background: #ffffff;
+  clip-path: polygon(22% 0, 100% 0, 100% 100%, 0 100%);
+  opacity: .6; z-index: 0;
+}
+
+.page-section { padding: 5.5rem 4rem; }
+.page-section-inner { max-width: 1200px; margin: 0 auto; }
+.page-section.alt { background: var(--gray-light); }
+
+/* ---------------------------------------------------------------
+   Hakkımızda güçlendirme: değerler, süreç, öne çıkan alıntı
+   --------------------------------------------------------------- */
+.about-intro {
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start;
+}
+.about-intro p { color: var(--gray-text); font-size: 1.02rem; line-height: 1.85; margin: 0 0 1.2rem; }
+.about-lead {
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+  font-weight: 300; line-height: 1.35; color: var(--black);
+}
+.about-lead em { color: var(--purple); font-style: italic; }
+
+.pull-quote {
+  max-width: 1000px; margin: 0 auto;
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(1.8rem, 3.2vw, 2.8rem);
+  font-weight: 300; line-height: 1.3; color: var(--black);
+  border-left: 3px solid var(--orange); padding-left: 2rem;
+}
+.pull-quote em { color: var(--orange); font-style: italic; }
+
+.process-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;
+  margin-top: 3rem;
+}
+.process-card {
+  background: var(--color-background-primary);
+  border: .5px solid var(--gray-mid);
+  border-radius: var(--border-radius-lg);
+  padding: 1.6rem 1.4rem;
+  transition: transform .25s, box-shadow .25s;
+}
+.process-card:hover { transform: translateY(-4px); box-shadow: 0 18px 40px #0000000d; }
+.process-step {
+  font-family: var(--font-mono); font-size: .78rem; color: var(--orange);
+  letter-spacing: .1em; margin-bottom: 1rem;
+}
+.process-card h3 { font-size: 1.02rem; font-weight: 600; margin: 0 0 .5rem; color: var(--black); }
+.process-card p { font-size: .9rem; color: var(--gray-text); line-height: 1.65; margin: 0; }
+
+.value-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-top: 3rem;
+}
+@media (max-width: 1100px) { .value-grid { grid-template-columns: repeat(2, 1fr); } }
+.value-card {
+  padding: 1.8rem 1.6rem; border-radius: var(--border-radius-lg);
+  background: var(--color-background-primary); border: .5px solid var(--gray-mid);
+}
+.value-card .why-icon { color: var(--orange); font-size: 1.1rem; margin-bottom: .9rem; }
+.value-card h3 { font-size: 1.05rem; font-weight: 600; margin: 0 0 .5rem; color: var(--black); }
+.value-card p { font-size: .92rem; color: var(--gray-text); line-height: 1.7; margin: 0; }
+
+/* Alt sayfada CTA bandı */
+.cta-band {
+  background: var(--black); color: #fff; text-align: center;
+  padding: 5rem 4rem;
+}
+.cta-band h2 {
+  font-family: "Cormorant Garamond", serif; font-weight: 300;
+  font-size: clamp(1.8rem, 3vw, 2.6rem); line-height: 1.2; margin: 0 0 1rem;
+}
+.cta-band p { color: #ffffffa6; max-width: 480px; margin: 0 auto 2rem; line-height: 1.7; }
+
+/* Referanslar sayfası: sektör etiketleri */
+.ref-intro-stats {
+  display: flex; flex-wrap: wrap; gap: 3rem; margin-top: 2.5rem;
+}
+.ref-intro-stats .hstat-num { font-size: 2.4rem; }
+
+/* Referanslar: tek boy, hizalı logo grid'i */
+.logo-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1px;
+  background: var(--gray-mid);
+  border: 1px solid var(--gray-mid);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+.logo-cell {
+  background: #fff;
+  aspect-ratio: 3 / 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.6rem 2rem;
+  transition: background .25s;
+}
+.logo-cell:hover { background: var(--gray-light); }
+.logo-cell.filler { background: #fff; }
+.logo-cell.filler:hover { background: #fff; }
+.logo-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+@media (max-width: 900px) { .logo-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 560px) { .logo-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* ===============================================================
+   Karmatik CTA
+   =============================================================== */
+.karmatik-cta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  max-width: 1200px;
+  margin: 0 auto 2.25rem;
+  padding: 1.5rem 1.9rem;
+  background: linear-gradient(105deg, #0b0b0b 0%, #191919 100%);
+  border: 1px solid #000;
+  border-radius: 16px;
+  text-decoration: none;
+  overflow: hidden;
+  transition: transform .25s, box-shadow .25s;
+}
+.karmatik-cta::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(680px circle at 92% -20%, rgba(240,120,20,.22), transparent 55%);
+  pointer-events: none;
+}
+.karmatik-cta:hover { transform: translateY(-2px); box-shadow: 0 22px 48px rgba(0,0,0,.28); }
+.karmatik-cta-badge {
+  position: absolute; top: 14px; right: 18px;
+  font-size: .6rem; letter-spacing: .2em; text-transform: uppercase;
+  color: rgba(255,255,255,.38); font-weight: 600;
+}
+.karmatik-cta-icon {
+  flex: 0 0 auto;
+  width: 52px; height: 52px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(140deg, var(--orange), #ffab4d);
+  color: #1a1a1a;
+  box-shadow: 0 8px 20px rgba(240,120,20,.35);
+}
+.karmatik-cta-text {
+  display: flex; flex-direction: column; gap: .25rem;
+  color: rgba(255,255,255,.62); font-size: .9rem; line-height: 1.5;
+  position: relative; z-index: 1;
+}
+.karmatik-cta-text strong {
+  color: #fff;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.5rem; font-weight: 500; line-height: 1.15;
+}
+.karmatik-cta-btn {
+  flex: 0 0 auto; margin-left: auto;
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: var(--orange); color: #fff;
+  font-size: .82rem; font-weight: 600; letter-spacing: .03em;
+  padding: .8rem 1.5rem; border-radius: 10px;
+  white-space: nowrap; transition: background .2s, transform .2s;
+  position: relative; z-index: 1;
+}
+.karmatik-cta:hover .karmatik-cta-btn { background: #d4660f; }
+
+/* ===============================================================
+   Karlılık hesaplayıcı — yeniden tasarım
+   =============================================================== */
+.calc { max-width: 1200px; margin: 0 auto; }
+.calc-grid2 {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1.25rem; align-items: start;
+}
+.calc-card {
+  background: #fff; border: 1px solid var(--gray-mid);
+  border-radius: 16px; padding: 1.5rem 1.6rem;
+}
+.calc-card-label {
+  margin: 0 0 1.1rem; font-size: .7rem; font-weight: 600;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--gray-text);
+}
+.calc-inputs { display: flex; flex-direction: column; gap: 1rem; }
+.calc-field { display: flex; flex-direction: column; gap: .4rem; }
+.calc-field label { font-size: .8rem; color: var(--gray-text); }
+.calc-hint { font-size: .7rem; color: var(--color-text-tertiary); }
+.calc-input-wrap { position: relative; }
+.calc-input-wrap input, .calc-input-wrap select { width: 100%; box-sizing: border-box; }
+.calc-input-wrap input { padding-right: 2rem !important; }
+.calc-suffix {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  font-size: .85rem; color: var(--gray-text); pointer-events: none;
+}
+.calc-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+.calc-divider { height: 1px; background: var(--gray-mid); margin: .3rem 0; }
+.calc-note { margin: 0; font-size: .72rem; color: var(--color-text-tertiary); line-height: 1.5; }
+
+.calc-results { display: flex; flex-direction: column; gap: 1.25rem; }
+.calc-net {
+  text-align: center;
+  background: linear-gradient(180deg, #fff, #fbfbf8);
+}
+.calc-net-value {
+  margin: .1rem 0 0; font-family: var(--font-mono);
+  font-size: 2.7rem; font-weight: 600; line-height: 1;
+}
+.calc-net-sub { display: flex; align-items: center; justify-content: center; gap: .6rem; margin-top: .8rem; }
+.calc-badge {
+  font-size: .78rem; font-weight: 600; padding: 3px 12px;
+  border-radius: 999px; background: var(--gray-light);
+}
+.calc-net-sublabel { font-size: .78rem; color: var(--color-text-tertiary); }
+
+.calc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+.calc-stat { background: var(--gray-light); border-radius: 12px; padding: .9rem 1rem; }
+.calc-stat-label { margin: 0 0 .35rem; font-size: .72rem; color: var(--gray-text); }
+.calc-stat-value { margin: 0; font-size: 1.15rem; font-weight: 600; font-family: var(--font-mono); }
+
+.calc-bar { display: flex; height: 14px; border-radius: 7px; overflow: hidden; gap: 1px; background: var(--gray-light); }
+.calc-legend { display: flex; flex-wrap: wrap; gap: .5rem .9rem; margin-top: .9rem; }
+
+.calc-vat { display: flex; flex-direction: column; }
+.calc-vat-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: .5rem 0; border-bottom: 1px solid var(--gray-mid);
+  font-size: .82rem; color: var(--gray-text);
+}
+.calc-vat-row:last-child { border-bottom: none; }
+.calc-vat-value { font-family: var(--font-mono); color: var(--black); }
+.calc-vat-row.total { padding-top: .7rem; font-weight: 600; }
+.calc-vat-row.total span { color: var(--black); }
+.calc-vat-row.total .calc-vat-value { font-size: .95rem; }
+
+@media (max-width: 860px) {
+  .calc-grid2 { grid-template-columns: 1fr; }
+  .karmatik-cta { flex-wrap: wrap; gap: 1rem; padding: 1.4rem 1.5rem; }
+  .karmatik-cta-btn { margin-left: 0; width: 100%; justify-content: center; }
+  .karmatik-cta-badge { position: static; order: -1; width: 100%; }
+}
+@media (max-width: 560px) {
+  .calc-net-value { font-size: 2.2rem; }
+  .karmatik-cta-text strong { font-size: 1.25rem; }
+}
+
+/* ---------------------------------------------------------------
+   Responsive
+   --------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .brand-marquee-head, .page-hero, .page-section, .cta-band { padding-left: 1.5rem; padding-right: 1.5rem; }
+  .about-intro { grid-template-columns: 1fr; gap: 1.5rem; }
+  .process-grid { grid-template-columns: repeat(2, 1fr); }
+  .value-grid { grid-template-columns: 1fr; }
+  .page-hero-shape { display: none; }
+}
+@media (max-width: 560px) {
+  .brand-marquee-section { padding: 4rem 0 4.5rem; }
+  .process-grid { grid-template-columns: 1fr; }
+  .brand-lane-track { gap: 3rem; }
+  .page-hero { padding: 8.5rem 1.5rem 3rem; }
+}
