@@ -227,36 +227,48 @@ body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; 
 }
 .ref-intro-stats .hstat-num { font-size: 2.4rem; }
 
-/* Referanslar: tek boy, hizalı logo grid'i */
-.logo-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 1px;
-  background: var(--gray-mid);
-  border: 1px solid var(--gray-mid);
-  border-radius: var(--border-radius-lg);
-  overflow: hidden;
-}
+/* Referanslar: tek boy, hizalı logo kartları (ayrı kenarlıklı — boş hücre olmaz) */
+.logo-grid { display: grid; gap: .75rem; }
+.logo-grid-global { grid-template-columns: repeat(3, 1fr); }  /* öne çıkan, büyük */
+.logo-grid-local  { grid-template-columns: repeat(5, 1fr); }  /* kompakt */
 .logo-cell {
   background: #fff;
+  border: 1px solid var(--gray-mid);
+  border-radius: 12px;
   aspect-ratio: 3 / 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.6rem 2rem;
-  transition: background .25s;
+  padding: 1.4rem 1.6rem;
+  transition: background .2s, border-color .2s, transform .2s;
 }
-.logo-cell:hover { background: var(--gray-light); }
-.logo-cell.filler { background: #fff; }
-.logo-cell.filler:hover { background: #fff; }
+.logo-cell:hover { background: #fff; border-color: #d9d9d3; transform: translateY(-2px); }
 .logo-cell img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
 }
-@media (max-width: 900px) { .logo-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 560px) { .logo-grid { grid-template-columns: repeat(2, 1fr); } }
+/* Global kartlar biraz daha ferah/büyük */
+.logo-grid-global .logo-cell { aspect-ratio: 2 / 1; padding: 1.6rem 2rem; }
+
+@media (max-width: 1024px) {
+  .logo-grid-local { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 768px) {
+  .logo-grid { gap: .6rem; }
+  .logo-grid-global { grid-template-columns: repeat(3, 1fr); }
+  .logo-grid-local  { grid-template-columns: repeat(3, 1fr); }
+  .logo-cell { padding: 1.1rem 1.2rem; }
+}
+@media (max-width: 520px) {
+  .logo-grid-global { grid-template-columns: repeat(2, 1fr); }
+  .logo-grid-local  { grid-template-columns: repeat(2, 1fr); }
+  .logo-cell { padding: 1rem 1.1rem; aspect-ratio: 3 / 2; }
+  .logo-grid-global .logo-cell { aspect-ratio: 3 / 2; }
+  .ref-intro-stats { gap: 1.4rem 2rem; }
+  .ref-intro-stats .hstat-num { font-size: 1.9rem; }
+}
 
 /* ===============================================================
    Karmatik CTA
