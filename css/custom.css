@@ -12,6 +12,9 @@
    ============================================================= */
 /* Sahte kalın/eğik üretimini kapat — sadece gerçek ağırlıklar kullanılsın */
 body { font-synthesis: none; }
+/* Yatay taşma emniyeti — hiçbir eleman viewport'u aşıp düzeni bozmasın */
+html, body { overflow-x: hidden; max-width: 100%; }
+.calc-card, .calc-bento > * { min-width: 0; }
 
 /* Aktif menü öğesi */
 .nav-links a.active { color: var(--orange); }
@@ -229,9 +232,11 @@ body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; 
 
 /* Referanslar: tek boy, hizalı logo kartları (ayrı kenarlıklı — boş hücre olmaz) */
 .logo-grid { display: grid; gap: .75rem; }
-.logo-grid-global { grid-template-columns: repeat(3, 1fr); }  /* öne çıkan, büyük */
-.logo-grid-local  { grid-template-columns: repeat(5, 1fr); }  /* kompakt */
+.logo-grid-global { grid-template-columns: repeat(3, minmax(0, 1fr)); }  /* öne çıkan, büyük */
+.logo-grid-local  { grid-template-columns: repeat(5, minmax(0, 1fr)); }  /* kompakt */
 .logo-cell {
+  min-width: 0;                 /* geniş logolar track'i şişirmesin (taşma önlenir) */
+  overflow: hidden;
   background: #fff;
   border: 1px solid var(--gray-mid);
   border-radius: 12px;
@@ -244,6 +249,8 @@ body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; 
 }
 .logo-cell:hover { background: #fff; border-color: #d9d9d3; transform: translateY(-2px); }
 .logo-cell img {
+  max-width: 100%;
+  max-height: 100%;
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -253,17 +260,17 @@ body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; 
 .logo-grid-global .logo-cell { aspect-ratio: 2 / 1; padding: 1.6rem 2rem; }
 
 @media (max-width: 1024px) {
-  .logo-grid-local { grid-template-columns: repeat(4, 1fr); }
+  .logo-grid-local { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 @media (max-width: 768px) {
   .logo-grid { gap: .6rem; }
-  .logo-grid-global { grid-template-columns: repeat(3, 1fr); }
-  .logo-grid-local  { grid-template-columns: repeat(3, 1fr); }
+  .logo-grid-global { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .logo-grid-local  { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .logo-cell { padding: 1.1rem 1.2rem; }
 }
 @media (max-width: 520px) {
-  .logo-grid-global { grid-template-columns: repeat(2, 1fr); }
-  .logo-grid-local  { grid-template-columns: repeat(2, 1fr); }
+  .logo-grid-global { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .logo-grid-local  { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .logo-cell { padding: 1rem 1.1rem; aspect-ratio: 3 / 2; }
   .logo-grid-global .logo-cell { aspect-ratio: 3 / 2; }
   .ref-intro-stats { gap: 1.4rem 2rem; }
