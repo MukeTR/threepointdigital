@@ -259,29 +259,66 @@
     render();
   }
 
-  /* ---------- 4) İletişim formu → WhatsApp ---------- */
-  var WHATSAPP_NUMBER = '905413473642';
+  /* ---------- 4) İletişim formu → FormSubmit (e-posta) ---------- */
+  var FORM_ENDPOINT = 'https://formsubmit.co/ajax/mkemalkaratas95@gmail.com';
   function initContactForm() {
     var form = document.querySelector('.contact-form');
     if (!form) return;
+
+    var status = document.createElement('p');
+    status.className = 'form-status';
+    status.style.cssText = 'font-size:1rem;font-weight:500;margin-top:.75rem;display:none';
+    form.appendChild(status);
+
+    function showStatus(text, ok) {
+      status.textContent = text;
+      status.style.color = ok ? '#1a8f4c' : '#c0392b';
+      status.style.display = 'block';
+    }
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var get = function (name) {
         var el = form.querySelector('[name="' + name + '"]');
-        return el && el.value.trim() ? el.value.trim() : '-';
+        return el ? el.value.trim() : '';
       };
-      var text =
-        'Yeni İletişim Formu — threepointdigital.com\n' +
-        'Ad: ' + get('name') + '\n' +
-        'Marka: ' + get('brand') + '\n' +
-        'E-posta: ' + get('email') + '\n' +
-        'Platformlar: ' + get('platforms') + '\n' +
-        'Mesaj: ' + get('message');
-      window.open('https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(text), '_blank');
-      var msg = document.createElement('p');
-      msg.style.cssText = 'color:#1a8f4c;font-size:1rem;font-weight:500';
-      msg.textContent = 'WhatsApp üzerinden mesajınızı gönderin — sohbet penceresi açıldı.';
-      form.replaceChildren(msg);
+      if (!get('name') || !get('email') || !get('message')) {
+        showStatus('Lütfen ad, e-posta ve mesaj alanlarını doldurun.', false);
+        return;
+      }
+
+      var btn = form.querySelector('.form-submit');
+      var btnText = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = 'Gönderiliyor…'; }
+
+      fetch(FORM_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          _subject: 'Yeni İletişim Formu — threepointdigital.com',
+          _template: 'table',
+          'Ad': get('name'),
+          'Marka': get('brand') || '-',
+          'E-posta': get('email'),
+          'Platformlar': get('platforms') || '-',
+          'Mesaj': get('message')
+        })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data && (data.success === 'true' || data.success === true)) {
+            form.reset();
+            showStatus('Mesajınız gönderildi. En kısa sürede size geri döneceğiz!', true);
+          } else {
+            throw new Error((data && data.message) || 'Gönderim başarısız');
+          }
+        })
+        .catch(function () {
+          showStatus('Mesaj gönderilemedi. Lütfen tekrar deneyin veya bize e-posta ile ulaşın.', false);
+        })
+        .finally(function () {
+          if (btn) { btn.disabled = false; btn.textContent = btnText; }
+        });
     });
   }
 
