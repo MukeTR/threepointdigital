@@ -259,15 +259,28 @@
     render();
   }
 
-  /* ---------- 4) İletişim formu ---------- */
+  /* ---------- 4) İletişim formu → WhatsApp ---------- */
+  var WHATSAPP_NUMBER = '905413473642';
   function initContactForm() {
     var form = document.querySelector('.contact-form');
     if (!form) return;
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      var get = function (name) {
+        var el = form.querySelector('[name="' + name + '"]');
+        return el && el.value.trim() ? el.value.trim() : '-';
+      };
+      var text =
+        'Yeni İletişim Formu — threepointdigital.com\n' +
+        'Ad: ' + get('name') + '\n' +
+        'Marka: ' + get('brand') + '\n' +
+        'E-posta: ' + get('email') + '\n' +
+        'Platformlar: ' + get('platforms') + '\n' +
+        'Mesaj: ' + get('message');
+      window.open('https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(text), '_blank');
       var msg = document.createElement('p');
       msg.style.cssText = 'color:#1a8f4c;font-size:1rem;font-weight:500';
-      msg.textContent = 'Mesajınız alındı. En kısa sürede size geri döneceğiz!';
+      msg.textContent = 'WhatsApp üzerinden mesajınızı gönderin — sohbet penceresi açıldı.';
       form.replaceChildren(msg);
     });
   }
