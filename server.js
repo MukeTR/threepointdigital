@@ -8,7 +8,7 @@
  *   - /sayfa.html -> /sayfa   301
  *   - /index.html -> /        301
  *   - Sondaki eğik çizgi      301 ile kaldırılır (kök hariç)
- *   - Kanonik alan adı        threepointdigital.com -> www.threepointdigital.com 301
+ *   - Kanonik alan adı        yalnızca CANONICAL_HOST tanımlıysa (varsayılan kapalı)
  *   - 404 için 404.html
  *   - Önbellek ve güvenlik başlıkları
  */
@@ -21,8 +21,13 @@ const ROOT = __dirname;
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 
-// Kanonik alan adı. Boş bırakılırsa alan adı yönlendirmesi yapılmaz.
-const CANONICAL_HOST = process.env.CANONICAL_HOST || 'www.threepointdigital.com';
+// Kanonik alan adı yönlendirmesi (apex -> www).
+// VARSAYILAN OLARAK KAPALIDIR. Hostinger'ın sağlık kontrolü uygulamayı apex
+// host'uyla yokluyorsa, 200 yerine 301 alması uygulamayı sağlıksız saydırıp
+// 503'e yol açabiliyor. Yönlendirmeyi platform (hPanel) tarafında yapmak daha
+// güvenli. Yine de uygulama içinde istenirse CANONICAL_HOST ortam değişkenini
+// 'www.threepointdigital.com' olarak tanımlamak yeterli.
+const CANONICAL_HOST = process.env.CANONICAL_HOST || '';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
