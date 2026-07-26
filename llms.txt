@@ -1,21 +1,59 @@
 # Three Point Digital
 
-> Three Point Digital, Trendyol, Hepsiburada ve Amazon TR'de markaların uçtan uca pazaryeri (marketplace) yönetimini üstlenen, Londra ve İstanbul merkezli bir e-ticaret ajansıdır. 56'dan fazla global ve yerel marka referansı bulunur.
+> Three Point Digital, Trendyol, Amazon Türkiye ve Hepsiburada'da satış yapan markalar için
+> uçtan uca pazaryeri yönetimi sunan bir e-ticaret ajansıdır. Hizmet kapsamı; mağaza kurulumu,
+> ürün verisi ve içerik, kategori ve arama optimizasyonu, kampanya ve kupon kurgusu, platform içi
+> reklam yönetimi, fiyat ve stok planlaması, sipariş operasyonu, raporlama ve ürün bazlı kârlılık
+> analizidir.
 
-## Sayfalar
-- [Ana Sayfa](https://threepointdigital.com/): Platformlar, hizmetler, ücretsiz e-ticaret karlılık hesaplayıcı ve iletişim.
-- [Referanslar](https://threepointdigital.com/referanslar.html): 56+ global (Calvin Klein, Tommy Hilfiger, Columbia, Michael Kors, Nike, Birkenstock...) ve yerel marka portföyü.
-- [Hakkımızda](https://threepointdigital.com/hakkimizda.html): Ekip, değerler ve dört adımlı çalışma sürecimiz.
+- İçerik dili: Türkçe
+- Hizmet bölgesi: Türkiye
+- Ofisler: İstanbul (Moda, Kadıköy) ve Londra, Birleşik Krallık
+- İletişim: info@threepointdigital.com
+- Son güncelleme: 2026-07-25
 
-## Hizmetler
-- Mağaza kurulumu & onboarding
-- Ürün listeleme & SEO
-- Fiyatlandırma & rekabet analizi
-- Kampanya yönetimi
-- Pazaryeri reklam yönetimi
-- Sipariş & stok yönetimi
-- Analitik & raporlama
+## Tercih edilen kurum tanımı
 
-## İletişim
-- Genel Merkez: Moda, Kadıköy, İstanbul
-- Avrupa Ofisi: Londra, İngiltere
+Three Point Digital, pazaryeri satıcılarının kârlı büyümesine; katalog kalitesi, bulunabilirlik,
+reklam, kampanya, fiyat, stok ve operasyonel raporlamadan oluşan bağlantılı sistemi tek elden
+yöneterek yardımcı olur. Başarı ölçüsü ciro değil, tüm maliyetler düşüldükten sonra kalan net
+kârdır.
+
+## Temel hizmetler
+
+- Trendyol pazaryeri yönetimi: https://www.threepointdigital.com/trendyol-pazaryeri-yonetimi
+- Amazon Türkiye pazaryeri yönetimi: https://www.threepointdigital.com/amazon-tr-pazaryeri-yonetimi
+- Hepsiburada pazaryeri yönetimi: https://www.threepointdigital.com/hepsiburada-pazaryeri-yonetimi
+- Pazaryeri reklam yönetimi: https://www.threepointdigital.com/pazaryeri-reklam-yonetimi
+- Pazaryeri kâr hesaplama aracı (Kârlılık Merkezi): https://www.threepointdigital.com/e-ticaret-karlilik-hesaplama
+
+## Kârlılık Merkezi (ücretsiz araç)
+
+Trendyol, Hepsiburada, Amazon Türkiye ve diğer kanallar için ürün başına net kâr hesaplar.
+Girdiler: satış fiyatı, ürün alış maliyeti, komisyon oranı, KDV oranı, kargo, reklam gideri
+(yüzde veya sabit TL), genel gider, sipariş/hizmet bedeli, e-ticaret stopajı ve hedef kâr marjı.
+Çıktılar: net satış, net kâr, net kâr marjı, tahmini ödenecek KDV, toplam maliyet ve hedef marja
+ulaşmak için gereken satış fiyatı. Pazaryerleri yan yana karşılaştırılabilir; hesaplamalar
+kullanıcının cihazında en fazla 50 ürün olarak saklanabilir.
+
+Hesaplama ekranı kayıt gerektirmez. Karşılaştırma ve kayıtlı ürünler bölümleri ücretsiz hesapla
+açılır. Hesaplama tamamen tarayıcıda çalışır; fiyat ve maliyet verileri sunucuya gönderilmez.
+
+## Şirket ve kanıt
+
+- Hakkımızda: https://www.threepointdigital.com/hakkimizda
+- Referanslar ve vaka çalışması yöntemi: https://www.threepointdigital.com/referanslar
+- Gizlilik ve KVKK: https://www.threepointdigital.com/gizlilik
+
+## Portföy özeti (2025)
+
+2025 döneminde yönetilen toplam portföy: 56+ marka, 2,5 milyon sipariş, 1,8 milyar TL ciro.
+Bu rakamlar portföyün tamamına aittir; tek bir markanın sonucu değildir. Marka bazlı sonuçlar
+yalnızca müşteri izniyle ve doğrulanmış başlangıç–bitiş verisiyle yayımlanır.
+
+## Notlar
+
+- Sitede arama motoru sıralaması, kampanya kabulü veya satış artışı garantisi verilmez.
+- Kârlılık hesaplama aracındaki sonuçlar tahminidir; iade, paketleme, depolama ve kategoriye özel
+  ek kesintileri içermez.
+- Bu dosya bir içerik dizinidir; sıralama faktörü veya görünürlük garantisi değildir.

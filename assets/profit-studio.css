@@ -1,0 +1,1223 @@
+/* ==========================================================================
+   Three Point Digital — Kârlılık Merkezi (Profit Studio)
+   Teslim edilen React uygulamasının stilleri, sitenin tasarım diline uyarlandı.
+   Tüm sınıflar `ps-` ön ekiyle yazıldı; site.css ile çakışma yoktur.
+   Renk, tipografi ve yuvarlaklık değerleri site.css'teki değişkenlerden gelir.
+   ========================================================================== */
+
+.ps {
+  --ps-radius: 16px;
+  --ps-soft: #fff1e4;
+  --ps-mint: #ddf4e6;
+  --ps-warn-bg: #fff2cf;
+  --ps-warn-ink: #7a5000;
+  --ps-danger-bg: #ffe6e3;
+  --ps-panel: #fbfaf7;
+  width: var(--wrap);
+  margin: 0 auto;
+  padding-bottom: 30px;
+}
+
+/* ---------- Görünüm sekmeleri ---------- */
+.ps-toolbar {
+  position: sticky;
+  top: 78px;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 26px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 24px rgba(15, 13, 9, 0.05);
+}
+
+.ps-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ps-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.ps-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.ps-tab:hover {
+  color: var(--ink);
+}
+
+.ps-tab[aria-selected="true"] {
+  background: var(--ink);
+  color: var(--white);
+}
+
+.ps-tab .ps-count,
+.ps-tab .ps-free {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--ps-soft);
+  color: var(--orange-dark);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ps-tab[aria-selected="true"] .ps-count,
+.ps-tab[aria-selected="true"] .ps-free {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffd0a6;
+}
+
+.ps-free {
+  font-style: normal;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+.ps-toolbar-action {
+  min-height: 44px;
+  padding: 11px 20px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--white);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.ps-toolbar-action:hover {
+  background: var(--orange-dark);
+  border-color: var(--orange-dark);
+  transform: translateY(-1px);
+}
+
+/* ---------- Görünüm başlıkları ---------- */
+.ps-view[hidden] {
+  display: none;
+}
+
+.ps-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 26px;
+}
+
+.ps-intro h2 {
+  max-width: 700px;
+  font-size: clamp(28px, 3.4vw, 44px);
+}
+
+.ps-intro p {
+  max-width: 620px;
+  margin: 14px 0 0;
+  color: var(--muted);
+}
+
+.ps-intro-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ps-ghost,
+.ps-solid {
+  min-height: 46px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.ps-ghost {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--ink);
+}
+
+.ps-ghost:hover {
+  background: var(--white);
+  border-color: #b9b5ac;
+}
+
+.ps-solid {
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--white);
+}
+
+.ps-solid:hover {
+  background: var(--orange-dark);
+  border-color: var(--orange-dark);
+  transform: translateY(-1px);
+}
+
+/* ---------- Hesaplama düzeni ---------- */
+.ps-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(330px, 0.8fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.ps-panel {
+  padding: clamp(20px, 3vw, 30px);
+  border: 1px solid var(--line);
+  border-radius: var(--ps-radius);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 14px 40px rgba(15, 13, 9, 0.06);
+}
+
+.ps-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.ps-panel-head > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ps-panel-head h3 {
+  font-size: 19px;
+}
+
+.ps-step {
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: var(--ps-soft);
+  color: var(--orange-dark);
+  font-family: "Manrope", sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ps-live {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--ps-mint);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ---------- Alanlar ---------- */
+.ps-identity {
+  display: grid;
+  grid-template-columns: 1.4fr 0.6fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.ps-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 14px;
+}
+
+.ps-field {
+  display: block;
+  min-width: 0;
+}
+
+.ps-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+  color: #3f4650;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ps-label small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.ps-input {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  height: 50px;
+  border: 1px solid #a8a49b;
+  border-radius: 11px;
+  background: var(--white);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ps-input:focus-within {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(243, 111, 18, 0.16);
+}
+
+.ps-input input,
+.ps-input select {
+  width: 100%;
+  height: 100%;
+  padding: 0 14px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.ps-input select {
+  appearance: none;
+  cursor: pointer;
+}
+
+.ps-input b {
+  padding: 0 14px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ---------- Pazaryeri seçimi ---------- */
+.ps-markets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.ps-market {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 62px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--ps-panel);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.ps-market:hover {
+  border-color: #b9b5ac;
+}
+
+.ps-market[aria-checked="true"] {
+  border-color: var(--orange);
+  background: var(--ps-soft);
+  color: var(--ink);
+  box-shadow: 0 0 0 1px var(--orange);
+}
+
+.ps-badge {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  color: var(--white);
+  font-family: "Manrope", sans-serif;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+/* ---------- Reklam modu ---------- */
+.ps-ad {
+  position: relative;
+}
+
+.ps-admode {
+  position: absolute;
+  right: 0;
+  top: -4px;
+  display: flex;
+  padding: 3px;
+  border-radius: 8px;
+  background: #eceae5;
+}
+
+.ps-admode button {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ps-admode button[aria-pressed="true"] {
+  background: var(--white);
+  color: var(--orange-dark);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* ---------- Gelişmiş giderler ---------- */
+.ps-advanced-toggle {
+  display: grid;
+  grid-template-columns: 26px auto 1fr;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 22px;
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ps-advanced-toggle > span:first-child {
+  color: var(--orange-dark);
+  font-size: 21px;
+  line-height: 1;
+}
+
+.ps-advanced-toggle small {
+  justify-self: end;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.ps-advanced {
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: 13px;
+  background: var(--ps-panel);
+}
+
+.ps-advanced[hidden] {
+  display: none;
+}
+
+/* ---------- Sonuç paneli ---------- */
+.ps-result {
+  position: sticky;
+  top: 150px;
+}
+
+.ps-result-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ps-result-top > span:first-child {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.ps-health {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ps-health i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.ps-health[data-state="hedefte"] {
+  background: var(--ps-mint);
+  color: var(--green);
+}
+
+.ps-health[data-state="dikkat"] {
+  background: var(--ps-warn-bg);
+  color: var(--ps-warn-ink);
+}
+
+.ps-health[data-state="zarar"] {
+  background: var(--ps-danger-bg);
+  color: var(--danger);
+}
+
+.ps-profit {
+  display: block;
+  margin-top: 14px;
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(38px, 3.8vw, 52px);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.ps-profit.is-negative {
+  color: var(--danger);
+}
+
+.ps-margin {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ps-margin strong {
+  color: var(--green);
+  font-family: "Manrope", sans-serif;
+  font-size: 20px;
+}
+
+.ps-margin.is-negative strong {
+  color: var(--danger);
+}
+
+.ps-margin span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ps-goal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 22px 0;
+  padding: 15px 17px;
+  border-radius: 13px;
+  background: var(--ink);
+  color: var(--white);
+}
+
+.ps-goal small {
+  display: block;
+  margin-bottom: 4px;
+  color: #b3b8be;
+  font-size: 12px;
+}
+
+.ps-goal strong {
+  display: block;
+  font-family: "Manrope", sans-serif;
+  font-size: 20px;
+}
+
+.ps-goal button {
+  padding: 9px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ps-goal button:hover {
+  background: var(--orange);
+  border-color: var(--orange);
+}
+
+.ps-breakdown {
+  display: grid;
+  gap: 11px;
+}
+
+.ps-breakdown > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  font-size: 14px;
+}
+
+.ps-breakdown span {
+  color: var(--muted);
+}
+
+.ps-breakdown strong {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ps-breakdown .ps-vat-row {
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+
+.ps-costbar {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+  margin-top: 20px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eceae5;
+}
+
+.ps-costbar span:nth-child(1) {
+  background: #2f3640;
+}
+
+.ps-costbar span:nth-child(2) {
+  background: var(--orange);
+}
+
+.ps-costbar span:nth-child(3) {
+  background: #e0a74f;
+}
+
+.ps-costbar .ps-profit-seg {
+  flex: 1;
+  background: #4faf7c;
+}
+
+.ps-note {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.ps-save-result {
+  width: 100%;
+  margin-top: 16px;
+  padding: 13px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ps-save-result:hover {
+  background: var(--ink);
+  color: var(--white);
+}
+
+/* ---------- Karşılaştırma ---------- */
+.ps-compare-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 30px;
+  margin-bottom: 18px;
+  padding: 15px 20px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}
+
+.ps-compare-summary span {
+  color: var(--muted);
+}
+
+.ps-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.ps-market-card {
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--ps-radius);
+  background: var(--white);
+}
+
+.ps-market-card.is-winner {
+  border-color: var(--orange);
+  box-shadow: 0 16px 45px rgba(243, 111, 18, 0.14);
+}
+
+.ps-best {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 7px 11px;
+  border-radius: 0 0 0 10px;
+  background: var(--orange-dark);
+  color: var(--white);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.ps-market-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 24px;
+}
+
+.ps-market-head strong {
+  display: block;
+  font-family: "Manrope", sans-serif;
+  font-size: 15px;
+}
+
+.ps-market-head small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ps-market-profit {
+  display: block;
+  font-family: "Manrope", sans-serif;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.ps-market-profit.is-negative {
+  color: var(--danger);
+}
+
+.ps-market-margin {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ps-market-margin.is-negative {
+  color: var(--danger);
+}
+
+.ps-scenario {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 15px;
+  border-radius: 12px;
+  background: var(--ps-panel);
+}
+
+.ps-scenario label > span,
+.ps-scenario-ad > span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ps-mini-input {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+}
+
+.ps-mini-input input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0 9px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ps-mini-input:focus-within {
+  border-color: var(--orange);
+}
+
+.ps-mini-input b {
+  padding-right: 9px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ps-scenario-ad {
+  position: relative;
+  grid-column: 1 / -1;
+}
+
+.ps-mini-toggle {
+  position: absolute;
+  right: 0;
+  top: -5px;
+  display: flex;
+  padding: 2px;
+  border-radius: 7px;
+  background: #e6e4df;
+}
+
+.ps-mini-toggle button {
+  padding: 3px 9px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ps-mini-toggle button[aria-pressed="true"] {
+  background: var(--white);
+  color: var(--orange-dark);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.ps-mini-metrics {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+}
+
+.ps-mini-metrics div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.ps-mini-metrics span {
+  color: var(--muted);
+}
+
+.ps-market-card > button:last-child {
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 999px;
+  background: #f1efea;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ps-market-card > button:last-child:hover {
+  background: var(--ink);
+  color: var(--white);
+}
+
+.ps-compare-note {
+  margin: 20px auto 0;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ---------- Kayıtlı ürünler ---------- */
+.ps-empty {
+  max-width: 520px;
+  margin: 60px auto;
+  text-align: center;
+}
+
+.ps-empty > span {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 18px;
+  border-radius: 16px;
+  background: var(--ps-soft);
+  color: var(--orange-dark);
+  font-size: 28px;
+}
+
+.ps-empty p {
+  margin: 10px 0 22px;
+  color: var(--muted);
+}
+
+.ps-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--ps-radius);
+  background: var(--white);
+  box-shadow: 0 14px 40px rgba(15, 13, 9, 0.06);
+}
+
+.ps-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.ps-table th {
+  padding: 14px 18px;
+  background: #f2efe9;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.07em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.ps-table td {
+  padding: 15px 18px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.ps-table td > strong {
+  display: block;
+}
+
+.ps-table td > small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ps-table-market {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  white-space: nowrap;
+}
+
+.ps-table-market .ps-badge {
+  width: 25px;
+  height: 25px;
+  border-radius: 7px;
+  font-size: 11px;
+}
+
+.ps-positive {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.ps-negative {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.ps-row-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ps-row-actions button {
+  margin-left: 6px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #f1efea;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ps-row-actions button:hover {
+  background: var(--ink);
+  color: var(--white);
+}
+
+.ps-row-actions button.ps-delete {
+  background: #ffece9;
+  color: var(--danger);
+}
+
+.ps-row-actions button.ps-delete:hover {
+  background: var(--danger);
+  color: var(--white);
+}
+
+/* ---------- Kayıt modalı ---------- */
+.ps-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(11, 12, 15, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.ps-modal-backdrop[hidden] {
+  display: none;
+}
+
+.ps-modal {
+  position: relative;
+  width: min(100%, 460px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  padding: clamp(24px, 4vw, 34px);
+  border-radius: 22px;
+  background: var(--paper);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.3);
+}
+
+.ps-modal h2 {
+  max-width: 360px;
+  font-size: clamp(26px, 3vw, 32px);
+}
+
+.ps-modal > p {
+  margin: 12px 0 22px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.ps-modal form {
+  display: grid;
+  gap: 15px;
+}
+
+.ps-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--white);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ps-modal-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 18px;
+  border-radius: 13px;
+  background: var(--ink);
+  color: var(--white);
+  font-family: "Manrope", sans-serif;
+  font-weight: 800;
+  box-shadow: inset -8px -8px 0 var(--orange);
+}
+
+.ps-consent {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 10px;
+  align-items: start;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ps-consent input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--orange);
+}
+
+.ps-form-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ps-form-error[hidden] {
+  display: none;
+}
+
+.ps-modal-submit {
+  width: 100%;
+  padding: 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--white);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ps-modal-submit:hover {
+  background: var(--orange-dark);
+}
+
+.ps-modal-submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.ps-modal > small {
+  display: block;
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.ps-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ---------- Bildirim ---------- */
+.ps-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  z-index: 300;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--white);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  transform: translateX(-50%);
+  animation: ps-toast-in 0.2s ease;
+}
+
+.ps-toast[hidden] {
+  display: none;
+}
+
+@keyframes ps-toast-in {
+  from {
+    transform: translate(-50%, 10px);
+    opacity: 0;
+  }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 980px) {
+  .ps-toolbar {
+    top: 78px;
+    border-radius: 18px;
+  }
+
+  .ps-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ps-result {
+    position: static;
+  }
+
+  .ps-compare-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .ps-toolbar {
+    top: 70px;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .ps-tabs {
+    width: 100%;
+  }
+
+  .ps-tab {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .ps-toolbar-action {
+    width: 100%;
+  }
+
+  .ps-identity,
+  .ps-fields,
+  .ps-compare-grid,
+  .ps-scenario {
+    grid-template-columns: 1fr;
+  }
+
+  .ps-markets {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ps-intro-actions {
+    width: 100%;
+  }
+
+  .ps-intro-actions button {
+    flex: 1 1 100%;
+  }
+
+  .ps-advanced-toggle {
+    grid-template-columns: 24px auto;
+  }
+
+  .ps-advanced-toggle small {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .ps-goal {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .ps-goal button {
+    width: 100%;
+  }
+}

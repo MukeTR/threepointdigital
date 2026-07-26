@@ -1,0 +1,120 @@
+# =====================================================================
+# Three Point Digital — Apache / LiteSpeed yapılandırması (Hostinger)
+# Son güncelleme: 2026-07-25
+#
+# NOT: HTTPS yönlendirmesi burada TANIMLI DEĞİLDİR. Hostinger hPanel
+# üzerinden "Force HTTPS" zaten açıktır; CDN arkasında %{HTTPS} değişkeni
+# yanlış okunabildiği için burada zorlamak sonsuz döngü riski taşır.
+# =====================================================================
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # -------------------------------------------------------------------
+  # 1) Kanonik alan adı: threepointdigital.com -> www.threepointdigital.com
+  #    (Şu anda her iki host da aynı içeriği 200 ile döndürüyor; bu kural
+  #     yinelenen içeriği ortadan kaldırır.)
+  #    www yerine köke geçmek isterseniz bu bloğu tersine çevirin ve
+  #    tüm sayfalardaki canonical/og:url adreslerini de güncelleyin.
+  # -------------------------------------------------------------------
+  RewriteCond %{HTTP_HOST} ^threepointdigital\.com$ [NC]
+  RewriteRule ^(.*)$ https://www.threepointdigital.com/$1 [R=301,L]
+
+  # -------------------------------------------------------------------
+  # 2) /index.html -> /
+  # -------------------------------------------------------------------
+  RewriteCond %{THE_REQUEST} \s/+index\.html[\s?] [NC]
+  RewriteRule ^ / [R=301,L]
+
+  # -------------------------------------------------------------------
+  # 3) Eski uzantılı adresler -> uzantısız adres (301)
+  #    Örn. /referanslar.html -> /referanslar
+  #         /hakkimizda.html  -> /hakkimizda
+  # -------------------------------------------------------------------
+  RewriteCond %{THE_REQUEST} \s/+(.+?)\.html[\s?] [NC]
+  RewriteRule ^ /%1 [R=301,L]
+
+  # -------------------------------------------------------------------
+  # 4) Sondaki eğik çizgiyi kaldır (gerçek dizinler hariç)
+  #    /trendyol-pazaryeri-yonetimi/ -> /trendyol-pazaryeri-yonetimi
+  # -------------------------------------------------------------------
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.+?)/$ /$1 [R=301,L]
+
+  # -------------------------------------------------------------------
+  # 5) Uzantısız adresi ilgili .html dosyasına eşle (dahili, yönlendirmesiz)
+  # -------------------------------------------------------------------
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+  RewriteRule ^(.+)$ /$1.html [L]
+</IfModule>
+
+# ---------------------------------------------------------------------
+# 404 sayfası
+# ---------------------------------------------------------------------
+ErrorDocument 404 /404.html
+
+# ---------------------------------------------------------------------
+# MIME tipleri
+# ---------------------------------------------------------------------
+<IfModule mod_mime.c>
+  AddType font/woff2 .woff2
+  AddType image/webp .webp
+  AddType image/svg+xml .svg
+  AddType application/manifest+json .webmanifest
+  AddCharset UTF-8 .html .css .js .txt .xml
+</IfModule>
+
+# ---------------------------------------------------------------------
+# Sıkıştırma
+# ---------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE application/xml application/rss+xml
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ---------------------------------------------------------------------
+# Önbellek süreleri
+# HTML kısa tutulur ki içerik güncellemeleri hızlı yayılsın.
+# ---------------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 week"
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType image/png "access plus 6 months"
+  ExpiresByType image/jpeg "access plus 6 months"
+  ExpiresByType image/webp "access plus 6 months"
+  ExpiresByType image/svg+xml "access plus 6 months"
+  ExpiresByType image/x-icon "access plus 6 months"
+  ExpiresByType text/plain "access plus 1 day"
+  ExpiresByType application/xml "access plus 1 day"
+</IfModule>
+
+<IfModule mod_headers.c>
+  # Statik varlıklar sürüm değiştikçe dosya adıyla değişmediği için
+  # HTML her zaman taze alınır.
+  <FilesMatch "\.(html)$">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # Güvenlik başlıkları
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), interest-cohort=()"
+</IfModule>
+
+# ---------------------------------------------------------------------
+# Dizin listelemesini kapat
+# ---------------------------------------------------------------------
+Options -Indexes

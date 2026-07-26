@@ -1,22 +1,48 @@
-# Three Point Digital
-User-agent: *
-Allow: /
-Disallow: /images/_original_backup/
+# Three Point Digital — robots.txt
+# Son güncelleme: 2026-07-25
 
-# Yapay zeka / arama botları için açık erişim
-User-agent: Googlebot
-Allow: /
-User-agent: Bingbot
-Allow: /
-User-agent: GPTBot
-Allow: /
+# --- ChatGPT Search keşif crawler'ı (arama görünürlüğü için gereklidir) ---
 User-agent: OAI-SearchBot
 Allow: /
+
+# --- OpenAI model eğitim crawler'ı ---
+# Bu tercih OAI-SearchBot'tan bağımsızdır. Eğitim erişimini kapatmak isterseniz
+# aşağıdaki "Allow: /" satırını "Disallow: /" ile değiştirmeniz yeterlidir;
+# bu değişiklik ChatGPT Search görünürlüğünü etkilemez.
+User-agent: GPTBot
+Allow: /
+
+# --- Diğer yapay zekâ / yanıt motorları ---
+User-agent: ChatGPT-User
+Allow: /
+
 User-agent: PerplexityBot
 Allow: /
+
 User-agent: ClaudeBot
 Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://threepointdigital.com/sitemap.xml
+User-agent: Applebot-Extended
+Allow: /
+
+# --- Klasik arama motorları ---
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+# --- Tüm diğer botlar ---
+User-agent: *
+Allow: /
+
+Sitemap: https://www.threepointdigital.com/sitemap.xml

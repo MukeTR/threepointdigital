@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tpd-karlilik-kayit",
+  "main": "src/index.js",
+  "compatibility_date": "2026-07-25",
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tpd-karlilik",
+      // `npx wrangler d1 create tpd-karlilik` komutunun döndürdüğü kimliği buraya yazın.
+      "database_id": "BURAYA_D1_DATABASE_ID_YAZIN"
+    }
+  ]
+  // İsteğe bağlı: özel alan adı kullanmak isterseniz Cloudflare'da alan adı
+  // barındırılıyor olmalıdır. O durumda aşağıdaki bloğu açın:
+  // "routes": [
+  //   { "pattern": "api.threepointdigital.com", "custom_domain": true }
+  // ]
+}

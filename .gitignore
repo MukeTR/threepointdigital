@@ -1,13 +1,21 @@
-# İşletim sistemi
+# macOS
 .DS_Store
-Thumbs.db
+._*
 
-# Orijinal logo yedekleri (repoya dahil değil)
-images/_original_backup/
-
-# Geçici / log dosyaları
-*.log
-
-# Node
+# Bağımlılıklar (yalnızca api/ klasöründe wrangler kurulunca oluşur)
 node_modules/
-npm-debug.log*
+package-lock.json
+
+# Cloudflare Wrangler
+.wrangler/
+api/.dev.vars
+api/.wrangler/
+worker-configuration.d.ts
+
+# Yerel geliştirme çıktıları
+*.log
+.cache/
+
+# Yenileme öncesi canlı site kopyası — geri dönüş için git geçmişi kullanılır
+# (git checkout 671973b), bu klasör yalnızca yerelde tutulur.
+_yedek-mevcut-site/
