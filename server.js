@@ -33,6 +33,19 @@ const HOST = process.env.HOST || '0.0.0.0';
 // 'www.threepointdigital.com' olarak tanımlamak yeterli.
 const CANONICAL_HOST = process.env.CANONICAL_HOST || '';
 
+// --- Kârlılık Merkezi mini uygulaması ---------------------------------------
+// Kayıt ve kaydedilen ürünler Supabase'de durur. Servis anahtarı yalnızca
+// sunucuda okunur; tarayıcıya hiç gitmez. Ortam değişkenleri tanımlı değilse
+// uygulama "cihaz modunda" çalışır: kapı açılır, ürünler yalnızca tarayıcıda
+// saklanır (bkz. registerHandler).
+const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
+const SUPABASE_TABLE = process.env.SUPABASE_TABLE || 'tpd_registrations';
+const hasSupabase = () => Boolean(SUPABASE_URL && SUPABASE_SERVICE_KEY);
+
+// Kötü niyetli büyük istekleri erken kes.
+const MAX_BODY_BYTES = 64 * 1024;
+
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.css':  'text/css; charset=utf-8',
@@ -104,6 +117,203 @@ function serveFile(res, filePath) {
   });
 }
 
+/* ==========================================================================
+   Kârlılık Merkezi API'si
+   POST /api/kayit    { contact, storeName }        -> { id, mode }
+   GET  /api/urunler?id=...                        -> { products }
+   PUT  /api/urunler  { id, products }             -> { ok }
+   ========================================================================== */
+
+function jsonResponse(res, status, body) {
+  const payload = JSON.stringify(body);
+  res.writeHead(status, Object.assign(
+    {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+    SECURITY_HEADERS
+  ));
+  res.end(payload);
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    req.on('data', (chunk) => {
+      size += chunk.length;
+      if (size > MAX_BODY_BYTES) {
+        reject(new Error('too-large'));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on('end', () => {
+      try {
+        resolve(JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'));
+      } catch (e) {
+        reject(new Error('bad-json'));
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+// Türkiye cep telefonu: 5xxxxxxxxx (10 hane). 0/+90/90 önekleri temizlenir.
+function normalizePhone(raw) {
+  let digits = String(raw || '').replace(/\D/g, '');
+  if (digits.startsWith('90') && digits.length === 12) digits = digits.slice(2);
+  if (digits.startsWith('0') && digits.length === 11) digits = digits.slice(1);
+  return /^5\d{9}$/.test(digits) ? digits : '';
+}
+
+function supabase(pathAndQuery, init = {}) {
+  return fetch(SUPABASE_URL + pathAndQuery, Object.assign({}, init, {
+    headers: Object.assign(
+      {
+        apikey: SUPABASE_SERVICE_KEY,
+        Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY,
+        'Content-Type': 'application/json',
+      },
+      init.headers || {}
+    ),
+  }));
+}
+
+async function handleRegister(req, res) {
+  let body;
+  try {
+    body = await readBody(req);
+  } catch (e) {
+    return jsonResponse(res, e.message === 'too-large' ? 413 : 400, { error: 'Kayıt tamamlanamadı.' });
+  }
+
+  // Bot tuzağı: gizli alan doluysa sessizce reddet.
+  if (body.website) return jsonResponse(res, 400, { error: 'Kayıt tamamlanamadı.' });
+
+  const phone = normalizePhone(body.contact);
+  const fullName = String(body.fullName || '').trim().replace(/\s+/g, ' ');
+  const email = String(body.email || '').trim().toLowerCase();
+
+  if (fullName.length < 3 || fullName.length > 120 || !fullName.includes(' ')) {
+    return jsonResponse(res, 400, { error: 'Ad ve soyadını birlikte yaz.' });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 160) {
+    return jsonResponse(res, 400, { error: 'Geçerli bir e-posta adresi gir.' });
+  }
+  if (!phone) {
+    return jsonResponse(res, 400, { error: 'Geçerli bir cep telefonu numarası gir (05xx xxx xx xx).' });
+  }
+
+  // Supabase tanımlı değilse uygulama cihaz modunda çalışmaya devam eder:
+  // kapı açılır, ürünler yalnızca tarayıcıda saklanır.
+  if (!hasSupabase()) {
+    console.warn('[kayit] SUPABASE_URL/SUPABASE_SERVICE_KEY tanımsız — cihaz modu');
+    return jsonResponse(res, 200, { id: 'local-' + phone, mode: 'local' });
+  }
+
+  try {
+    const found = await supabase(
+      `/rest/v1/${SUPABASE_TABLE}?select=id&phone=eq.${encodeURIComponent(phone)}&limit=1`
+    );
+    if (found.ok) {
+      const rows = await found.json();
+      if (Array.isArray(rows) && rows.length && rows[0].id) {
+        // Mağaza adı değişmişse güncelle, aynı numaraya ikinci kayıt açma.
+        // Aynı numara tekrar kayıt olursa yeni satır açmaz, bilgilerini tazeler.
+        await supabase(`/rest/v1/${SUPABASE_TABLE}?id=eq.${rows[0].id}`, {
+          method: 'PATCH',
+          headers: { Prefer: 'return=minimal' },
+          body: JSON.stringify({ full_name: fullName, email: email }),
+        });
+        return jsonResponse(res, 200, { id: rows[0].id, mode: 'sync' });
+      }
+    }
+
+    const id = require('crypto').randomUUID();
+    const inserted = await supabase(`/rest/v1/${SUPABASE_TABLE}`, {
+      method: 'POST',
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ id, phone, full_name: fullName, email, products: [] }),
+    });
+
+    if (!inserted.ok) {
+      const detail = await inserted.text();
+      // 23505 = unique violation; araya başka istek girmiş olabilir.
+      if (detail.includes('23505')) {
+        const again = await supabase(
+          `/rest/v1/${SUPABASE_TABLE}?select=id&phone=eq.${encodeURIComponent(phone)}&limit=1`
+        );
+        const rows = again.ok ? await again.json() : [];
+        if (Array.isArray(rows) && rows.length) {
+          return jsonResponse(res, 200, { id: rows[0].id, mode: 'sync' });
+        }
+      }
+      console.error('[kayit] Supabase insert hatası', inserted.status, detail);
+      return jsonResponse(res, 500, { error: 'Kayıt şu anda tamamlanamadı.' });
+    }
+
+    return jsonResponse(res, 201, { id, mode: 'sync' });
+  } catch (error) {
+    console.error('[kayit] hata', error);
+    return jsonResponse(res, 500, { error: 'Kayıt şu anda tamamlanamadı.' });
+  }
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function handleProducts(req, res, url) {
+  if (!hasSupabase()) return jsonResponse(res, 200, { products: [], mode: 'local' });
+
+  if (req.method === 'GET') {
+    const id = url.searchParams.get('id') || '';
+    if (!UUID_RE.test(id)) return jsonResponse(res, 400, { error: 'Geçersiz oturum.' });
+    try {
+      const r = await supabase(`/rest/v1/${SUPABASE_TABLE}?select=products&id=eq.${id}&limit=1`);
+      const rows = r.ok ? await r.json() : [];
+      const products = Array.isArray(rows) && rows.length && Array.isArray(rows[0].products)
+        ? rows[0].products
+        : [];
+      return jsonResponse(res, 200, { products, mode: 'sync' });
+    } catch (error) {
+      console.error('[urunler] okuma hatası', error);
+      return jsonResponse(res, 500, { error: 'Ürünler getirilemedi.' });
+    }
+  }
+
+  if (req.method === 'PUT' || req.method === 'POST') {
+    let body;
+    try {
+      body = await readBody(req);
+    } catch (e) {
+      return jsonResponse(res, e.message === 'too-large' ? 413 : 400, { error: 'Kaydedilemedi.' });
+    }
+    const id = String(body.id || '');
+    if (!UUID_RE.test(id)) return jsonResponse(res, 400, { error: 'Geçersiz oturum.' });
+    if (!Array.isArray(body.products)) return jsonResponse(res, 400, { error: 'Kaydedilemedi.' });
+    // Kârlılık Merkezi cihazda en fazla 50 ürün tutuyor; sunucu da aynı sınırı uygular.
+    const products = body.products.slice(0, 50);
+    try {
+      const r = await supabase(`/rest/v1/${SUPABASE_TABLE}?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({ products, updated_at: new Date().toISOString() }),
+      });
+      if (!r.ok) {
+        console.error('[urunler] yazma hatası', r.status, await r.text());
+        return jsonResponse(res, 500, { error: 'Kaydedilemedi.' });
+      }
+      return jsonResponse(res, 200, { ok: true });
+    } catch (error) {
+      console.error('[urunler] yazma hatası', error);
+      return jsonResponse(res, 500, { error: 'Kaydedilemedi.' });
+    }
+  }
+
+  return jsonResponse(res, 405, { error: 'Desteklenmeyen yöntem.' });
+}
+
 // Site içeriği olmayan proje dosyaları. Deploy repo kökünü aldığı için bunlar
 // da web köküne düşer; sunucu seviyesinde kapatılır.
 const PRIVATE_DIRS = ['api', 'src', 'supabase', 'node_modules', '_yedek-mevcut-site'];
@@ -129,6 +339,19 @@ const server = http.createServer((req, res) => {
     urlPath = decodeURIComponent(queryIndex === -1 ? rawUrl : rawUrl.slice(0, queryIndex));
   } catch (e) {
     return send(res, 400, 'text/plain; charset=utf-8', 'Bad request');
+  }
+
+  // --- Kârlılık Merkezi API'si (statik dosyalardan önce) ---
+  if (urlPath === '/api/kayit') {
+    if (req.method !== 'POST') return jsonResponse(res, 405, { error: 'Yalnızca POST desteklenir.' });
+    return void handleRegister(req, res);
+  }
+  if (urlPath === '/api/urunler') {
+    const parsed = new URL(rawUrl, 'http://localhost');
+    return void handleProducts(req, res, parsed);
+  }
+  if (urlPath === '/api/durum') {
+    return jsonResponse(res, 200, { ok: true, supabase: hasSupabase() });
   }
 
   // --- Yayına açılmaması gereken dosyalar ---

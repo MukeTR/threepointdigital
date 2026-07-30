@@ -4,6 +4,7 @@
  * buradaki kod yalnızca etkileşim ekler.
  *
  *   1) Mobil menü (aria-expanded, Escape, dışarı tıklama)
+ *      + kaydırmada sıkışan yapışkan başlık
  *      + masaüstü "Pazaryerleri" açılır menüsü
  *   2) Ana sayfadaki kompakt kârlılık hesaplayıcı
  *      Hesaplama motoru, /e-ticaret-karlilik-hesaplama sayfasındaki Kârlılık
@@ -55,6 +56,46 @@
       if (mq.addEventListener) mq.addEventListener("change", onChange);
       else if (mq.addListener) mq.addListener(onChange);
     }
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 1a) Yapışkan başlık: sayfa kaydıkça sıkışır
+   *
+   * Başlık CSS'te zaten `position: sticky`. Burada yalnızca kaydırma
+   * durumunu sınıfa çeviriyoruz; yükseklik de mobil menünün üst konumu
+   * için --header-h değişkenine yazılıyor.
+   * ------------------------------------------------------------------ */
+  function initStickyHeader() {
+    var header = document.querySelector(".site-header");
+    if (!header) return;
+
+    var ticking = false;
+
+    function syncHeight() {
+      document.documentElement.style.setProperty(
+        "--header-h",
+        Math.round(header.getBoundingClientRect().height) + "px"
+      );
+    }
+
+    function update() {
+      header.classList.toggle("is-scrolled", window.scrollY > 8);
+      syncHeight();
+      ticking = false;
+    }
+
+    window.addEventListener(
+      "scroll",
+      function () {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(update);
+      },
+      { passive: true }
+    );
+
+    window.addEventListener("resize", syncHeight);
+    update();
   }
 
   /* ------------------------------------------------------------------ *
@@ -402,6 +443,7 @@
    * ------------------------------------------------------------------ */
   function init() {
     initNav();
+    initStickyHeader();
     initDropdown();
     document.querySelectorAll("[data-calculator]").forEach(initCalculator);
     initContactForm();

@@ -165,6 +165,8 @@
     scenarios: defaultScenarios(),
     saved: [],
     registered: false,
+    sessionId: "",
+    sessionMode: "local",
     pendingAction: "karsilastir"
   };
 
@@ -198,6 +200,20 @@
       }
     }
     state.registered = gateEnabled ? Boolean(readStorage(STORAGE_REGISTRATION)) : true;
+
+    // Oturum: kayıt sırasında sunucudan gelen id ve mod (sync | local).
+    // "sync" ise ürünler Supabase'e de yazılır ve başka cihazdan görülebilir.
+    var session = readStorage(STORAGE_REGISTRATION);
+    if (session) {
+      try {
+        var parsedSession = JSON.parse(session);
+        state.sessionId = parsedSession.id || "";
+        state.sessionMode = parsedSession.mode || "local";
+      } catch (error) {
+        state.sessionId = "";
+        state.sessionMode = "local";
+      }
+    }
   })();
 
   /* ------------------------------------------------------------------ *
@@ -607,6 +623,52 @@
     writeStorage(STORAGE_PRODUCTS, JSON.stringify(items));
     renderProducts();
     updateCounts();
+    pushProducts();
+  }
+
+  /* Kaydedilen ürünleri sunucuya yazar. Yalnızca "sync" oturumunda çalışır;
+     hata olursa sessizce geçer — cihazdaki kopya her zaman geçerli kalır. */
+  function pushProducts() {
+    if (state.sessionMode !== "sync" || !state.sessionId) return;
+    fetch("/api/urunler", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: state.sessionId, products: state.saved })
+    }).catch(function () {
+      /* çevrimdışı olabilir; cihazdaki kayıt korunur */
+    });
+  }
+
+  /* Kayıttan hemen sonra ve sayfa açılışında sunucudaki listeyi getirir.
+     Cihazdaki ve sunucudaki listeler id'ye göre birleştirilir; böylece
+     kayıt öncesi cihazda kaydedilmiş ürünler kaybolmaz. */
+  function pullProducts() {
+    if (state.sessionMode !== "sync" || !state.sessionId) return;
+    fetch("/api/urunler?id=" + encodeURIComponent(state.sessionId))
+      .then(function (response) {
+        return response.ok ? response.json() : null;
+      })
+      .then(function (payload) {
+        if (!payload || !Array.isArray(payload.products)) return;
+        var seen = {};
+        var merged = [];
+        state.saved.concat(payload.products).forEach(function (item) {
+          if (!item || !item.id || seen[item.id]) return;
+          seen[item.id] = true;
+          merged.push(item);
+        });
+        merged = merged.slice(0, MAX_PRODUCTS);
+        var changed = merged.length !== state.saved.length;
+        state.saved = merged;
+        writeStorage(STORAGE_PRODUCTS, JSON.stringify(merged));
+        renderProducts();
+        updateCounts();
+        // Cihazda fazladan ürün varsa sunucuyu da güncelle.
+        if (changed) pushProducts();
+      })
+      .catch(function () {
+        /* sessizce geç */
+      });
   }
 
   function saveProduct() {
@@ -617,7 +679,7 @@
         : String(Date.now()) + Math.random().toString(16).slice(2);
     item.savedAt = new Date().toISOString();
     persist([item].concat(state.saved).slice(0, MAX_PRODUCTS));
-    flash("Ürün cihazına kaydedildi");
+    flash(state.sessionMode === "sync" ? "Ürün hesabına kaydedildi" : "Ürün cihazına kaydedildi");
   }
 
   function loadProduct(item) {
@@ -744,7 +806,7 @@
     lastFocused = document.activeElement;
     modalBackdrop.hidden = false;
     document.body.classList.add("menu-open");
-    var firstInput = el('input[name="contact"]', modalBackdrop);
+    var firstInput = el('input[name="fullName"]', modalBackdrop);
     if (firstInput) firstInput.focus();
   }
 
@@ -811,9 +873,21 @@
     modalError.hidden = false;
   }
 
-  function completeRegistration(id, storeName) {
-    writeStorage(STORAGE_REGISTRATION, JSON.stringify({ id: id, storeName: storeName }));
+  function completeRegistration(payload, form) {
+    writeStorage(
+      STORAGE_REGISTRATION,
+      JSON.stringify({
+        id: payload.id,
+        mode: payload.mode || "local",
+        fullName: form.fullName,
+        email: form.email,
+        phone: form.phone
+      })
+    );
+    state.sessionId = payload.id;
+    state.sessionMode = payload.mode || "local";
     state.registered = true;
+    pullProducts();
     closeModal();
     flash("Ücretsiz hesabın hazır");
     if (state.pendingAction === "save") saveProduct();
@@ -825,11 +899,25 @@
 
   function register() {
     if (!modalForm) return;
-    var contact = (el('input[name="contact"]', modalForm) || {}).value || "";
-    var storeName = (el('input[name="storeName"]', modalForm) || {}).value || "";
+    var fullName = ((el('input[name="fullName"]', modalForm) || {}).value || "").trim();
+    var email = ((el('input[name="email"]', modalForm) || {}).value || "").trim();
+    var contact = ((el('input[name="contact"]', modalForm) || {}).value || "").trim();
     var honey = (el('input[name="website"]', modalForm) || {}).value || "";
     var consent = el('input[name="consent"]', modalForm);
 
+    // Sunucu da aynı kuralları uygular; buradaki kontrol yalnızca hızlı geri bildirim.
+    if (fullName.length < 3 || fullName.indexOf(" ") === -1) {
+      showRegisterError("Ad ve soyadını birlikte yaz.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      showRegisterError("Geçerli bir e-posta adresi gir.");
+      return;
+    }
+    if (!/^5\d{9}$/.test(contact.replace(/\D/g, "").replace(/^90/, "").replace(/^0/, ""))) {
+      showRegisterError("Cep telefonunu 05xx xxx xx xx biçiminde gir.");
+      return;
+    }
     if (!consent || !consent.checked) {
       showRegisterError("Devam etmek için aydınlatma metnini onayla.");
       return;
@@ -844,7 +932,12 @@
     fetch(registerEndpoint, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ contact: contact, storeName: storeName, website: honey })
+      body: JSON.stringify({
+        fullName: fullName,
+        email: email,
+        contact: contact,
+        website: honey
+      })
     })
       .then(function (response) {
         return response
@@ -860,7 +953,7 @@
           });
       })
       .then(function (payload) {
-        completeRegistration(payload.id, storeName.trim());
+        completeRegistration(payload, { fullName: fullName, email: email, phone: contact });
       })
       .catch(function (error) {
         showRegisterError(error && error.message ? error.message : "Kayıt tamamlanamadı.");
@@ -881,6 +974,8 @@
       node.remove();
     });
   }
+
+  if (state.sessionMode === "sync") pullProducts();
 
   bindCalcView();
   bindGate();

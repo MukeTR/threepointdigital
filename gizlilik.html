@@ -26,7 +26,7 @@
     <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" sizes="180x180" />
     <link rel="preload" href="/assets/fonts/dm-sans-latin-ext.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/assets/fonts/manrope-latin-ext.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="/assets/site.css" />
+    <link rel="stylesheet" href="/assets/site.css?v=20260730" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -180,12 +180,17 @@
                   <tr><td>Mesleki / ticari</td><td>Marka veya şirket adı, öncelikli pazaryeri, belirtilmişse aylık ciro aralığı</td><td>İletişim formu</td></tr>
                   <tr><td>Talep içeriği</td><td>Mesaj alanına yazdığınız bilgiler</td><td>İletişim formu</td></tr>
                   <tr><td>Teknik</td><td>Form gönderimi sırasında oluşan teknik kayıtlar (IP, tarih-saat)</td><td>Form altyapısı ve barındırma sağlayıcısı</td></tr>
+                  <tr><td>Ücretsiz hesap</td><td>Ad soyad, e-posta adresi, cep telefonu numarası</td><td>Kârlılık Merkezi kayıt formu</td></tr>
+                  <tr><td>Ürün kayıtları</td><td>Kaydettiğiniz ürünlerin adı, fiyat ve maliyet bilgileri</td><td>Kârlılık Merkezi (yalnızca ücretsiz hesap açtıysanız)</td></tr>
                 </tbody>
               </table>
             </div>
             <p>
-              Kârlılık hesaplama aracına girdiğiniz değerler tarayıcınızda işlenir; sunucuya
-              gönderilmez ve tarafımızca kaydedilmez.
+              Kârlılık hesabı tarayıcınızda yapılır; girdiğiniz değerler hesaplama sırasında
+              sunucuya gönderilmez. Yalnızca <strong>ücretsiz hesap açıp bir ürünü kaydettiğinizde</strong>
+              o ürünün bilgileri hesabınıza bağlı olarak sunucuda saklanır; böylece aynı cep telefonu
+              numarasıyla başka bir cihazdan girdiğinizde kayıtlarınıza erişebilirsiniz. Kayıt
+              sırasında SMS doğrulaması yapılmaz.
             </p>
 
             <h2 id="amac">İşleme amacı ve hukuki sebebi</h2>
@@ -197,6 +202,12 @@
               <li>
                 <strong>İletişim kaydının tutulması:</strong> Hukuki yükümlülüklerin yerine
                 getirilmesi ve meşru menfaat hukuki sebeplerine dayanır.
+              </li>
+              <li>
+                <strong>Ücretsiz hesabın oluşturulması ve ürün kayıtlarının saklanması:</strong>
+                Talebiniz üzerine hizmetin sunulabilmesi için sözleşmenin ifası ve açık rıza
+                hukuki sebeplerine dayanır. Hesabınızın silinmesini istediğinizde kayıtlarınız
+                da silinir.
               </li>
               <li>
                 <strong>Pazarlama ve bilgilendirme iletileri:</strong> Yalnızca ayrıca ve açıkça
@@ -220,6 +231,7 @@
                   <tr><td>Hostinger</td><td>Web sitesi barındırma ve teknik sunucu kayıtları</td><td>Avrupa Birliği (Litvanya)</td></tr>
                   <tr><td>FormSubmit</td><td>İletişim formu gönderimlerinin e-posta olarak iletilmesi</td><td>Yurt dışı</td></tr>
                   <tr><td>Google Workspace</td><td>Form bildirimlerinin alındığı kurumsal e-posta kutusu</td><td>Yurt dışı</td></tr>
+                  <tr><td>Supabase</td><td>Kârlılık Merkezi ücretsiz hesap ve ürün kayıtlarının saklanması</td><td>Avrupa Birliği</td></tr>
                 </tbody>
               </table>
             </div>
@@ -314,6 +326,6 @@
       </div>
     </footer>
 
-    <script src="/assets/site.js" defer></script>
+    <script src="/assets/site.js?v=20260730" defer></script>
   </body>
 </html>
