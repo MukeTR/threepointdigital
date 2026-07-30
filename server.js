@@ -104,6 +104,21 @@ function serveFile(res, filePath) {
   });
 }
 
+// Site içeriği olmayan proje dosyaları. Deploy repo kökünü aldığı için bunlar
+// da web köküne düşer; sunucu seviyesinde kapatılır.
+const PRIVATE_DIRS = ['api', 'src', 'supabase', 'node_modules', '_yedek-mevcut-site'];
+const PRIVATE_FILES = ['server.js', 'package.json', 'package-lock.json', 'wrangler.jsonc'];
+const PRIVATE_EXTS = new Set(['.md', '.jsonc', '.sql', '.ts', '.yml', '.yaml', '.log']);
+
+function isPrivatePath(urlPath) {
+  const parts = urlPath.split('/').filter(Boolean);
+  if (parts.some((part) => part.startsWith('.'))) return true;
+  if (parts.length && PRIVATE_DIRS.includes(parts[0])) return true;
+  const last = parts[parts.length - 1] || '';
+  if (PRIVATE_FILES.includes(last)) return true;
+  return PRIVATE_EXTS.has(path.extname(last).toLowerCase());
+}
+
 const server = http.createServer((req, res) => {
   const rawUrl = req.url || '/';
   const queryIndex = rawUrl.indexOf('?');
@@ -115,6 +130,11 @@ const server = http.createServer((req, res) => {
   } catch (e) {
     return send(res, 400, 'text/plain; charset=utf-8', 'Bad request');
   }
+
+  // --- Yayına açılmaması gereken dosyalar ---
+  // Deploy repo kökünü aldığı için proje dosyaları da sunucunun yanında durur.
+  // Bunlar site içeriği değildir; istenirse 404 döner (403 varlığı doğrular).
+  if (isPrivatePath(urlPath)) return notFound(res);
 
   // --- Kanonik alan adı yönlendirmesi (CDN arkasında Host korunur) ---
   const host = (req.headers['x-forwarded-host'] || req.headers.host || '').split(':')[0];
