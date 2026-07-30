@@ -1,5 +1,5 @@
 # Three Point Digital — robots.txt
-# Son güncelleme: 2026-07-25
+# Son güncelleme: 2026-07-30
 
 # --- ChatGPT Search keşif crawler'ı (arama görünürlüğü için gereklidir) ---
 User-agent: OAI-SearchBot

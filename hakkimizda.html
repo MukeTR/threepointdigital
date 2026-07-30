@@ -40,7 +40,7 @@
             "url": "https://www.threepointdigital.com/hakkimizda",
             "name": "Hakkımızda — Three Point Digital",
             "inLanguage": "tr-TR",
-            "dateModified": "2026-07-25",
+            "dateModified": "2026-07-30",
             "isPartOf": { "@id": "https://www.threepointdigital.com/#website" },
             "about": { "@id": "https://www.threepointdigital.com/#organization" }
           },
@@ -65,9 +65,22 @@
           <img src="/images/logo-tpd.png" alt="Three Point Digital" width="764" height="160" />
         </a>
         <nav class="desktop-nav" aria-label="Ana menü">
-          <a href="/trendyol-pazaryeri-yonetimi">Trendyol</a>
-          <a href="/amazon-tr-pazaryeri-yonetimi">Amazon TR</a>
-          <a href="/hepsiburada-pazaryeri-yonetimi">Hepsiburada</a>
+          <div class="nav-item" data-nav-dropdown>
+            <button
+              class="nav-trigger"
+              type="button"
+              aria-expanded="false"
+              aria-controls="nav-pazaryerleri"
+              data-nav-trigger
+            >
+              Pazaryerleri
+            </button>
+            <div class="nav-dropdown" id="nav-pazaryerleri">
+              <a href="/trendyol-pazaryeri-yonetimi">Trendyol<span>Mağaza, kampanya, reklam ve kârlılık yönetimi</span></a>
+              <a href="/amazon-tr-pazaryeri-yonetimi">Amazon Türkiye<span>Katalog, Öne Çıkan Teklif ve reklam yönetimi</span></a>
+              <a href="/hepsiburada-pazaryeri-yonetimi">Hepsiburada<span>Kampanya, içerik ve mağaza performansı</span></a>
+            </div>
+          </div>
           <a href="/pazaryeri-reklam-yonetimi">Reklam</a>
           <a href="/e-ticaret-karlilik-hesaplama">Kârlılık</a>
           <a href="/referanslar">Referanslar</a>
@@ -86,13 +99,16 @@
         </button>
       </div>
       <nav class="mobile-menu" id="mobile-menu" aria-label="Mobil menü" data-mobile-menu>
+        <p class="mobile-menu-label">Pazaryeri yönetimi</p>
         <a href="/trendyol-pazaryeri-yonetimi">Trendyol pazaryeri yönetimi</a>
         <a href="/amazon-tr-pazaryeri-yonetimi">Amazon Türkiye pazaryeri yönetimi</a>
         <a href="/hepsiburada-pazaryeri-yonetimi">Hepsiburada pazaryeri yönetimi</a>
+        <p class="mobile-menu-label">Hizmet ve araçlar</p>
         <a href="/pazaryeri-reklam-yonetimi">Pazaryeri reklam yönetimi</a>
         <a href="/e-ticaret-karlilik-hesaplama">E-ticaret kârlılık hesaplama</a>
+        <p class="mobile-menu-label">Ajans</p>
         <a href="/referanslar">Referanslar</a>
-        <a href="/hakkimizda">Hakkımızda</a>
+        <a href="/hakkimizda" aria-current="page">Hakkımızda</a>
         <a class="button orange" href="/#iletisim">Ücretsiz analiz iste</a>
       </nav>
     </header>
@@ -149,9 +165,8 @@
               <a href="#kimiz">Kimiz?</a>
               <a href="#ilkeler">Çalışma ilkelerimiz</a>
               <a href="#nasil">Nasıl çalışıyoruz?</a>
-              <a href="#ekip">Ekip ve uzmanlık</a>
+              <a href="#ekip">Ekibimiz</a>
               <a href="#ofisler">Ofisler ve iletişim</a>
-              <a href="#kurumsal">Kurumsal bilgiler</a>
             </nav>
           </aside>
 
@@ -228,7 +243,7 @@
               </li>
             </ol>
 
-            <h2 id="ekip">Ekip ve uzmanlık alanları</h2>
+            <h2 id="ekip">Ekibimiz ve uzmanlıklarımız</h2>
             <p>
               Markalara atanmış sorumlu ekiplerle çalışıyoruz. Her markanın tek bir iletişim
               noktası olur; arkasında katalog, reklam ve operasyon tarafında uzmanlaşmış kişiler
@@ -242,14 +257,6 @@
               <li>Stok, sipariş ve teslimat operasyonu koordinasyonu</li>
               <li>Ürün bazlı kârlılık analizi ve raporlama</li>
             </ul>
-            <div class="placeholder-box">
-              <strong>Doğrulama bekliyor</strong>
-              <p>
-                Ekip üyelerinin isim, unvan, fotoğraf ve LinkedIn bilgileri bu bölümde
-                yayımlanacaktır. Gerçek olmayan ekip bilgisi eklemediğimiz için alan şu anda
-                boştur; şirket sahibinin onaylayacağı liste geldiğinde doldurulacaktır.
-              </p>
-            </div>
 
             <h2 id="ofisler">Ofisler ve iletişim</h2>
             <div class="table-scroll">
@@ -268,27 +275,9 @@
               Talepleriniz için <a href="/#iletisim">iletişim formunu</a> kullanabilirsiniz.
               Yanıt hedefimiz 1 iş günüdür.
             </p>
-            <div class="placeholder-box">
-              <strong>Doğrulama bekliyor</strong>
-              <p>
-                Açık posta adresleri (sokak, kapı no, posta kodu) ve telefon numarası bu bölüme
-                eklenecektir. Yerel arama görünürlüğü için tam adres ve telefon bilgisinin
-                yayımlanması önerilir.
-              </p>
-            </div>
-
-            <h2 id="kurumsal">Kurumsal bilgiler</h2>
-            <div class="placeholder-box">
-              <strong>Doğrulama bekliyor</strong>
-              <p>
-                Yasal şirket unvanı, ticaret sicil numarası, vergi dairesi ve vergi numarası,
-                MERSİS numarası ve KEP adresi burada yayımlanacaktır. Bu bilgiler
-                doğrulanmadan yayına alınmamalıdır.
-              </p>
-            </div>
 
             <p class="updated">
-              Yayıncı: Three Point Digital · İçerik son güncelleme: 25 Temmuz 2026
+              Yayıncı: Three Point Digital · İçerik son güncelleme: 30 Temmuz 2026
             </p>
           </article>
         </div>

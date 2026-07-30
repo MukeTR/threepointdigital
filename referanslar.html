@@ -18,7 +18,7 @@
     <meta property="og:title" content="Referanslar | Three Point Digital" />
     <meta
       property="og:description"
-      content="Birlikte çalıştığımız markalar ve vaka çalışması yayımlama yöntemimiz."
+      content="Birlikte çalıştığımız markalar ve sonuçları hangi kurallarla paylaştığımız."
     />
     <meta property="og:url" content="https://www.threepointdigital.com/referanslar" />
     <meta property="og:image" content="https://www.threepointdigital.com/assets/og.jpg" />
@@ -40,7 +40,7 @@
             "url": "https://www.threepointdigital.com/referanslar",
             "name": "Referanslar ve Vaka Çalışması Yöntemimiz",
             "inLanguage": "tr-TR",
-            "dateModified": "2026-07-25",
+            "dateModified": "2026-07-30",
             "isPartOf": { "@id": "https://www.threepointdigital.com/#website" },
             "about": { "@id": "https://www.threepointdigital.com/#organization" }
           },
@@ -65,9 +65,22 @@
           <img src="/images/logo-tpd.png" alt="Three Point Digital" width="764" height="160" />
         </a>
         <nav class="desktop-nav" aria-label="Ana menü">
-          <a href="/trendyol-pazaryeri-yonetimi">Trendyol</a>
-          <a href="/amazon-tr-pazaryeri-yonetimi">Amazon TR</a>
-          <a href="/hepsiburada-pazaryeri-yonetimi">Hepsiburada</a>
+          <div class="nav-item" data-nav-dropdown>
+            <button
+              class="nav-trigger"
+              type="button"
+              aria-expanded="false"
+              aria-controls="nav-pazaryerleri"
+              data-nav-trigger
+            >
+              Pazaryerleri
+            </button>
+            <div class="nav-dropdown" id="nav-pazaryerleri">
+              <a href="/trendyol-pazaryeri-yonetimi">Trendyol<span>Mağaza, kampanya, reklam ve kârlılık yönetimi</span></a>
+              <a href="/amazon-tr-pazaryeri-yonetimi">Amazon Türkiye<span>Katalog, Öne Çıkan Teklif ve reklam yönetimi</span></a>
+              <a href="/hepsiburada-pazaryeri-yonetimi">Hepsiburada<span>Kampanya, içerik ve mağaza performansı</span></a>
+            </div>
+          </div>
           <a href="/pazaryeri-reklam-yonetimi">Reklam</a>
           <a href="/e-ticaret-karlilik-hesaplama">Kârlılık</a>
           <a href="/referanslar" aria-current="page">Referanslar</a>
@@ -86,12 +99,15 @@
         </button>
       </div>
       <nav class="mobile-menu" id="mobile-menu" aria-label="Mobil menü" data-mobile-menu>
+        <p class="mobile-menu-label">Pazaryeri yönetimi</p>
         <a href="/trendyol-pazaryeri-yonetimi">Trendyol pazaryeri yönetimi</a>
         <a href="/amazon-tr-pazaryeri-yonetimi">Amazon Türkiye pazaryeri yönetimi</a>
         <a href="/hepsiburada-pazaryeri-yonetimi">Hepsiburada pazaryeri yönetimi</a>
+        <p class="mobile-menu-label">Hizmet ve araçlar</p>
         <a href="/pazaryeri-reklam-yonetimi">Pazaryeri reklam yönetimi</a>
         <a href="/e-ticaret-karlilik-hesaplama">E-ticaret kârlılık hesaplama</a>
-        <a href="/referanslar">Referanslar</a>
+        <p class="mobile-menu-label">Ajans</p>
+        <a href="/referanslar" aria-current="page">Referanslar</a>
         <a href="/hakkimizda">Hakkımızda</a>
         <a class="button orange" href="/#iletisim">Ücretsiz analiz iste</a>
       </nav>
@@ -218,19 +234,18 @@
           <aside class="content-aside">
             <p class="eyebrow">Bu sayfada</p>
             <nav aria-label="Sayfa içeriği">
-              <a href="#yontem">Yayımlama kurallarımız</a>
-              <a href="#sablon">Vaka çalışması şablonu</a>
-              <a href="#ornek">Şablonun boş hâli</a>
+              <a href="#yontem">Nasıl paylaşıyoruz?</a>
+              <a href="#sablon">Neleri yazıyoruz?</a>
               <a href="#neden-yuzde-yok">Neden yüzde yok?</a>
             </nav>
           </aside>
 
           <article class="prose">
-            <h2 id="yontem">Referansları ve sonuçları nasıl yayımlıyoruz?</h2>
+            <h2 id="yontem">Sonuçları nasıl paylaşıyoruz?</h2>
             <p>
               Pazaryeri sektöründe "%400 büyüme" türü başlıklar sık görülür; ancak bu sayılar
               çoğu zaman hangi dönemi, hangi ürün grubunu ve hangi başlangıç noktasını anlattığını
-              söylemez. Biz sonuç yayımlarken şu dört kuralı uyguluyoruz:
+              söylemez. Bir sonucu paylaşırken şu dört kurala uyuyoruz:
             </p>
             <ul class="checklist">
               <li><strong>İzin:</strong> Marka adı ve logosu yalnızca müşterinin yazılı izniyle kullanılır.</li>
@@ -244,70 +259,29 @@
               1,8 milyar TL ciro. Bu rakam portföyün tamamına aittir; tek bir markaya ait değildir.
             </p>
 
-            <h2 id="sablon">Vaka çalışması şablonumuz</h2>
+            <h2 id="sablon">Bir markanın sonucunu anlatırken neleri yazıyoruz?</h2>
             <p>
-              Yayımladığımız her vaka çalışması aşağıdaki alanları eksiksiz içerir. Böylece
-              okuyan kişi sonucun neyi ölçtüğünü, hangi koşullarda elde edildiğini ve nasıl
-              doğrulanabileceğini görebilir.
+              Bir markanın sonucunu paylaştığımızda aşağıdaki bilgileri eksiksiz veriyoruz.
+              Böylece okuyan kişi sayının neyi ölçtüğünü, hangi koşullarda çıktığını ve nasıl
+              doğrulanabileceğini kendi gözüyle görüyor.
             </p>
             <div class="table-scroll">
               <table class="kpi-table">
                 <thead>
-                  <tr><th scope="col">Alan</th><th scope="col">Neden var?</th></tr>
+                  <tr><th scope="col">Ne yazıyoruz?</th><th scope="col">Neden önemli?</th></tr>
                 </thead>
                 <tbody>
                   <tr><td>Marka ve kategori</td><td>Sonucun hangi rekabet koşulunda elde edildiğini gösterir.</td></tr>
-                  <tr><td>Platform(lar)</td><td>Trendyol, Amazon TR veya Hepsiburada dinamikleri farklıdır.</td></tr>
+                  <tr><td>Hangi pazaryeri</td><td>Trendyol, Amazon TR veya Hepsiburada dinamikleri farklıdır.</td></tr>
                   <tr><td>Çalışma kapsamı</td><td>Hangi işlerin ajans, hangilerinin marka tarafında olduğunu netleştirir.</td></tr>
-                  <tr><td>Uygulanan yöntem</td><td>Sonucu üreten aksiyonların tekrar edilebilirliğini gösterir.</td></tr>
-                  <tr><td>Ölçülen KPI'lar</td><td>Ciro dışındaki metriklerin de görülmesini sağlar.</td></tr>
+                  <tr><td>İzlediğimiz yol</td><td>Aynı yolun başka bir markada da izlenebileceğini gösterir.</td></tr>
+                  <tr><td>Ölçtüğümüz metrikler</td><td>Ciro dışındaki rakamların da görülmesini sağlar.</td></tr>
                   <tr><td>Tarih aralığı</td><td>Sezon ve kampanya etkisini değerlendirmeyi mümkün kılar.</td></tr>
                   <tr><td>Veri kaynağı</td><td>Sayının hangi panel raporundan geldiğini belirtir.</td></tr>
-                  <tr><td>Doğrulama yöntemi</td><td>Müşteri onayı ve rapor ekran görüntüsü/dışa aktarımıyla teyit.</td></tr>
-                  <tr><td>Kısıtlar</td><td>Sonucu etkileyen dış faktörleri (sezon, stok, fiyat) açıklar.</td></tr>
+                  <tr><td>Nasıl doğrulandı</td><td>Müşteri onayı ve panel raporunun kendisiyle teyit edilir.</td></tr>
+                  <tr><td>Sonucu etkileyen etkenler</td><td>Sezon, stok ve fiyat gibi dış etkenleri açıkça yazar.</td></tr>
                 </tbody>
               </table>
-            </div>
-
-            <h2 id="ornek">Şablonun boş hâli</h2>
-            <p>
-              Aşağıdaki kart, ilk doğrulanmış vaka çalışması yayımlandığında dolduracağımız
-              yapıdır. Şu anda içerik alanları bilinçli olarak boştur; gerçek olmayan örnek
-              yerleştirmiyoruz.
-            </p>
-            <div class="case-template">
-              <article class="case-card">
-                <header>
-                  <span class="tag orange">Vaka çalışması şablonu</span>
-                  <span class="tag">Henüz yayımlanmadı</span>
-                </header>
-                <h3>[Marka adı] · [Kategori]</h3>
-                <dl class="case-rows">
-                  <dt>Platform</dt>
-                  <dd>[Trendyol / Amazon Türkiye / Hepsiburada]</dd>
-                  <dt>Çalışma kapsamı</dt>
-                  <dd>[Katalog, içerik, kampanya, reklam, fiyat, stok, raporlama — hangileri]</dd>
-                  <dt>Uygulanan yöntem</dt>
-                  <dd>[Yapılan aksiyonlar, sırası ve gerekçesi]</dd>
-                  <dt>Ölçülen KPI'lar</dt>
-                  <dd>[Ciro, dönüşüm oranı, reklam maliyet oranı, katkı kârı, iade oranı …]</dd>
-                  <dt>Tarih aralığı</dt>
-                  <dd>[Başlangıç – bitiş tarihi]</dd>
-                  <dt>Veri kaynağı</dt>
-                  <dd>[Hangi panel raporu ve hangi tarihte alındığı]</dd>
-                  <dt>Doğrulama</dt>
-                  <dd>[Müşteri yazılı onayı · rapor dışa aktarımı]</dd>
-                  <dt>Kısıtlar</dt>
-                  <dd>[Sezon etkisi, stok kısıtı, fiyat değişimi gibi faktörler]</dd>
-                </dl>
-              </article>
-            </div>
-            <div class="placeholder-box">
-              <strong>Doğrulama bekliyor</strong>
-              <p>
-                Bu şablonun gerçek verilerle doldurulabilmesi için müşteri izni ve panel rapor
-                çıktıları gerekir. Yayına almadan önce marka onayı alınmalıdır.
-              </p>
             </div>
 
             <h2 id="neden-yuzde-yok">Neden burada büyüme yüzdesi göremiyorsunuz?</h2>
@@ -324,7 +298,7 @@
             </p>
 
             <p class="updated">
-              Yayıncı: Three Point Digital · İçerik son güncelleme: 25 Temmuz 2026
+              Yayıncı: Three Point Digital · İçerik son güncelleme: 30 Temmuz 2026
             </p>
           </article>
         </div>
@@ -332,7 +306,7 @@
 
       <section class="cta-band">
         <div class="cta-band-inner">
-          <h2>Bir sonraki vaka çalışması sizinki olsun.</h2>
+          <h2>Sıradaki hikâye sizin markanızın olsun.</h2>
           <a class="button" href="/#iletisim">Ücretsiz analiz iste</a>
         </div>
       </section>

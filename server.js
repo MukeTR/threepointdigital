@@ -17,7 +17,11 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = __dirname;
+// Dosya kökü iki yerleşimi de destekler: sayfalar `public/` altındaysa orayı,
+// değilse server.js ile aynı klasörü (Hostinger'daki public_html) kullanır.
+const ROOT = fs.existsSync(path.join(__dirname, 'public', 'index.html'))
+  ? path.join(__dirname, 'public')
+  : __dirname;
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 

@@ -58,7 +58,7 @@
             "url": "https://www.threepointdigital.com/trendyol-pazaryeri-yonetimi",
             "name": "Trendyol Mağaza Yönetimi Ajansı",
             "inLanguage": "tr-TR",
-            "dateModified": "2026-07-25",
+            "dateModified": "2026-07-30",
             "isPartOf": { "@id": "https://www.threepointdigital.com/#website" }
           },
           {
@@ -128,9 +128,22 @@
           <img src="/images/logo-tpd.png" alt="Three Point Digital" width="764" height="160" />
         </a>
         <nav class="desktop-nav" aria-label="Ana menü">
-          <a href="/trendyol-pazaryeri-yonetimi" aria-current="page">Trendyol</a>
-          <a href="/amazon-tr-pazaryeri-yonetimi">Amazon TR</a>
-          <a href="/hepsiburada-pazaryeri-yonetimi">Hepsiburada</a>
+          <div class="nav-item" data-nav-dropdown>
+            <button
+              class="nav-trigger"
+              type="button"
+              aria-expanded="false"
+              aria-controls="nav-pazaryerleri" aria-current="true"
+              data-nav-trigger
+            >
+              Pazaryerleri
+            </button>
+            <div class="nav-dropdown" id="nav-pazaryerleri">
+              <a href="/trendyol-pazaryeri-yonetimi" aria-current="page">Trendyol<span>Mağaza, kampanya, reklam ve kârlılık yönetimi</span></a>
+              <a href="/amazon-tr-pazaryeri-yonetimi">Amazon Türkiye<span>Katalog, Öne Çıkan Teklif ve reklam yönetimi</span></a>
+              <a href="/hepsiburada-pazaryeri-yonetimi">Hepsiburada<span>Kampanya, içerik ve mağaza performansı</span></a>
+            </div>
+          </div>
           <a href="/pazaryeri-reklam-yonetimi">Reklam</a>
           <a href="/e-ticaret-karlilik-hesaplama">Kârlılık</a>
           <a href="/referanslar">Referanslar</a>
@@ -149,11 +162,14 @@
         </button>
       </div>
       <nav class="mobile-menu" id="mobile-menu" aria-label="Mobil menü" data-mobile-menu>
-        <a href="/trendyol-pazaryeri-yonetimi">Trendyol pazaryeri yönetimi</a>
+        <p class="mobile-menu-label">Pazaryeri yönetimi</p>
+        <a href="/trendyol-pazaryeri-yonetimi" aria-current="page">Trendyol pazaryeri yönetimi</a>
         <a href="/amazon-tr-pazaryeri-yonetimi">Amazon Türkiye pazaryeri yönetimi</a>
         <a href="/hepsiburada-pazaryeri-yonetimi">Hepsiburada pazaryeri yönetimi</a>
+        <p class="mobile-menu-label">Hizmet ve araçlar</p>
         <a href="/pazaryeri-reklam-yonetimi">Pazaryeri reklam yönetimi</a>
         <a href="/e-ticaret-karlilik-hesaplama">E-ticaret kârlılık hesaplama</a>
+        <p class="mobile-menu-label">Ajans</p>
         <a href="/referanslar">Referanslar</a>
         <a href="/hakkimizda">Hakkımızda</a>
         <a class="button orange" href="/#iletisim">Ücretsiz analiz iste</a>
@@ -200,14 +216,14 @@
             <p class="eyebrow">Bu sayfada</p>
             <nav aria-label="Sayfa içeriği">
               <a href="#nedir">Trendyol yönetimi nedir?</a>
-              <a href="#kimler">Kimler için uygun?</a>
+              <a href="#kimler">Kimler için?</a>
               <a href="#kapsam">Ne yapıyoruz?</a>
               <a href="#sorunlar">Çözdüğümüz sorunlar</a>
-              <a href="#kpi">İzlenen metrikler</a>
+              <a href="#kpi">Hangi rakamlar</a>
               <a href="#plan">30 / 60 / 90 gün</a>
               <a href="#model">Çalışma modeli</a>
               <a href="#neden">Neden Three Point Digital?</a>
-              <a href="#veri">Gerekli veriler</a>
+              <a href="#veri">Sizden istediklerimiz</a>
               <a href="#sss">Sık sorulan sorular</a>
             </nav>
           </aside>
@@ -232,10 +248,10 @@
             <p>
               Three Point Digital bu işleri ayrı görevler olarak değil, tek bir ticari sistem
               olarak yönetir. Önce mağazanın mevcut durumunu ve kategori rekabetini analiz eder,
-              ardından görünürlük, dönüşüm, operasyon ve kârlılık için aksiyonları önceliklendiririz.
+              ardından görünürlük, dönüşüm, operasyon ve kârlılık için yapılacak işleri sıraya koyarız.
             </p>
 
-            <h2 id="kimler">Bu hizmet kimler için uygun?</h2>
+            <h2 id="kimler">Bu hizmet kimler için?</h2>
             <ul class="checklist">
               <li>Trendyol'da satışa yeni başlayacak, mağaza ve katalog kurulumunu doğru yapmak isteyen markalar.</li>
               <li>Ürün sayısı artmasına rağmen cirosu aynı yerde duran mağazalar.</li>
@@ -250,7 +266,7 @@
               önce bu kısıtların çözülmesi gerekir. Keşif görüşmesinde bunu açıkça söyleriz.
             </p>
 
-            <h2 id="kapsam">Ajans tam olarak hangi işleri yapar?</h2>
+            <h2 id="kapsam">Tam olarak ne yapıyoruz?</h2>
 
             <h3>1. Mağaza ve katalog kurulumu</h3>
             <p>
@@ -350,7 +366,7 @@
               </table>
             </div>
 
-            <h2 id="kpi">Hangi metrikleri takip ediyoruz?</h2>
+            <h2 id="kpi">Hangi rakamlara bakıyoruz?</h2>
             <div class="table-scroll">
               <table class="kpi-table">
                 <thead>
@@ -361,13 +377,13 @@
                   <tr><td>Dönüşüm</td><td>Sepete ekleme ve sipariş dönüşüm oranı</td><td>Fiyat, görsel, yorum ve teklif iyileştirmesi</td></tr>
                   <tr><td>Rekabet</td><td>Buybox payı, rakip fiyat aralığı</td><td>Fiyat ve kampanya konumu</td></tr>
                   <tr><td>Reklam</td><td>Harcama, reklamdan ciro, reklam maliyet oranı, katkı kârı</td><td>Bütçe ve ürün portföyü dağılımı</td></tr>
-                  <tr><td>Operasyon</td><td>Termin süresi, iptal, iade, stok sürekliliği, satıcı puanı</td><td>Süreç ve envanter aksiyonları</td></tr>
+                  <tr><td>Operasyon</td><td>Termin süresi, iptal, iade, stok sürekliliği, satıcı puanı</td><td>Süreç ve stok düzenlemeleri</td></tr>
                   <tr><td>Kârlılık</td><td>Net satış, komisyon, kargo, reklam, stopaj, ürün maliyeti</td><td>Fiyat ve kampanya sınırları</td></tr>
                 </tbody>
               </table>
             </div>
 
-            <h2 id="plan">İlk 30, 60 ve 90 günde ne yapılır?</h2>
+            <h2 id="plan">İlk 30, 60 ve 90 günde ne yapıyoruz?</h2>
             <ol class="timeline">
               <li>
                 <strong>0–30. gün · Devralma ve temizlik</strong>
@@ -395,7 +411,7 @@
               optimizasyondur.
             </p>
 
-            <h2 id="model">Çalışma modeli nasıldır?</h2>
+            <h2 id="model">Birlikte nasıl çalışıyoruz?</h2>
             <p>
               Aylık sözleşmeli, tanımlı kapsamla çalışırız. Kapsam ilk görüşmede yazılı olarak
               belirlenir; ürün sayısı, kategori sayısı, reklam bütçesi büyüklüğü ve operasyon
@@ -421,11 +437,11 @@
               1,8 milyar TL ciro büyüklüğündedir. Bu rakam portföyün tamamına aittir; tek bir
               markanın sonucu değildir. Marka bazlı sonuçları yalnızca müşteri izniyle ve
               doğrulanmış veriyle paylaşırız —
-              <a href="/referanslar">referanslar sayfasındaki</a> vaka çalışması şablonu bunun için
-              hazırlandı.
+              bir sonucu anlatırken tam olarak neleri yazdığımızı
+              <a href="/referanslar">referanslar sayfasında</a> görebilirsiniz.
             </p>
 
-            <h2 id="veri">Hizmet almadan önce hangi veriler gerekir?</h2>
+            <h2 id="veri">Başlarken sizden ne istiyoruz?</h2>
             <p>
               Keşif ve teklif aşaması için aşağıdakiler yeterlidir. Verilerin tamamı olmasa da
               çalışmaya başlayabiliriz; eksikler ilk 30 günde birlikte tamamlanır.

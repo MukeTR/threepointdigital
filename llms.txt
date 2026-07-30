@@ -10,7 +10,7 @@
 - Hizmet bölgesi: Türkiye
 - Ofisler: İstanbul (Moda, Kadıköy) ve Londra, Birleşik Krallık
 - İletişim: info@threepointdigital.com
-- Son güncelleme: 2026-07-25
+- Son güncelleme: 2026-07-30
 
 ## Tercih edilen kurum tanımı
 
@@ -39,6 +39,12 @@ kullanıcının cihazında en fazla 50 ürün olarak saklanabilir.
 Hesaplama ekranı kayıt gerektirmez. Karşılaştırma ve kayıtlı ürünler bölümleri ücretsiz hesapla
 açılır. Hesaplama tamamen tarayıcıda çalışır; fiyat ve maliyet verileri sunucuya gönderilmez.
 
+## Site yapısı
+
+Ana menü dört başlıktan oluşur: Pazaryerleri (Trendyol, Amazon Türkiye, Hepsiburada),
+Reklam, Kârlılık ve ajans sayfaları (Referanslar, Hakkımızda). Tüm sayfalar
+https://www.threepointdigital.com adresi altındadır; uzantısız temiz URL kullanılır.
+
 ## Şirket ve kanıt
 
 - Hakkımızda: https://www.threepointdigital.com/hakkimizda
@@ -50,6 +56,83 @@ açılır. Hesaplama tamamen tarayıcıda çalışır; fiyat ve maliyet verileri
 2025 döneminde yönetilen toplam portföy: 56+ marka, 2,5 milyon sipariş, 1,8 milyar TL ciro.
 Bu rakamlar portföyün tamamına aittir; tek bir markanın sonucu değildir. Marka bazlı sonuçlar
 yalnızca müşteri izniyle ve doğrulanmış başlangıç–bitiş verisiyle yayımlanır.
+
+## Yönetilen markalar
+
+Aşağıdaki markaların Türkiye pazaryeri operasyonlarını (katalog, içerik, kampanya, reklam, fiyat,
+stok ve raporlama) Three Point Digital yürütür. Liste kategoriye göre gruplanmıştır.
+
+### Kadın giyim ve tekstil
+
+- Minaaise — kadın tekstil: gömlek, bluz, etek, elbise, pantolon, kimono, çanta
+- Miss Poem — kadın tekstil
+- Aselim Hijap Moda — tesettür giyim: takım, pantolon, gömlek
+- Real Dream — kadın spor giyim: tayt, büstiyer, çorap, suluk, termos
+- FormActive — kadın ve erkek korse, tayt, büstiyer
+
+### Erkek giyim ve tekstil
+
+- Giesto — erkek tekstil: gömlek, pantolon, ayakkabı, üst ve alt giyim
+- Danger — erkek giyim: ceket, mont, kaban, gömlek, pantolon, jogger
+- NoMarc — erkek tekstil
+- Shooter — erkek spor giyim
+- Rufelli — erkek spor ve klasik gömlek
+- Ravanelli — erkek gömlek
+- Paşahan — erkek non-iron gömlek
+- The Tailor Classic — erkek takım elbise
+- İDS Collection — erkek pantolon ve jogger
+- Keep Rising — erkek tişört
+
+### Kadın ve erkek ortak tekstil
+
+- Balkan Triko — triko, kazak, süveter, sweatshirt
+- Garen — kadın ve erkek şişme mont
+- Turay — kadın ve erkek pijama takımları
+- ModeXL — battal boy tekstil ürünleri
+- NisraKids — çocuk trikosu ve kazağı
+- Reef — tekstil markası
+- FashionHub — tekstil distribütörü
+
+### Çanta, valiz ve deri aksesuar
+
+- Shule — kadın çanta: omuz, postacı ve el çantası
+- Rimense — kadın çanta: omuz ve el çantası
+- Black Ribbon — lüks, deri ve baget kadın çanta
+- LunaBlu — kadın çanta, laptop çantası, okul çantası
+- Ground — valiz ve bavul setleri: kabin, orta ve büyük boy
+- Pierre Cardin — erkek deri cüzdan, kartlık, kemer
+- Boventura — deri aksesuar: kemer, cüzdan, kartlık, çanta
+- Metay Silver — gümüş aksesuar: yüzük, kolye, bileklik
+
+### Ev, dekorasyon ve halı
+
+- Cool Halı — halı, yolluk, kilim, paspas (salon, mutfak, balkon, tuvalet, ofis)
+- Lalhome Deco — ev aksesuarı, nevresim, yatak örtüsü, kırlent takımı ve kılıfı
+- Tiem Concept — ev dekorasyonu ve mum
+- ZerafEv — ev dekorasyonu, kapı kulpu, avize, hırdavat
+- MapofX — harita ve ahşap dekorasyon ürünleri
+- Flosoft — plastik ürünler: sabunluk, dispenser, otomatik tuvalet aletleri
+
+### Kozmetik, kişisel bakım ve temizlik
+
+- BAClean — şampuan, saç kremi, nemlendirici ve sıkılaştırıcı krem, sıvı sabun, ayak kremi
+- Ewela — kurutma topu, oje çıkarıcı, güneş kremi
+- Swelle — sabun
+- MaxIcon — temizlik: yüzey temizleyici, derz temizleyici, leke çıkarıcı
+
+### Medikal ve sağlık
+
+- Aurafix — medikal korse, boyunluk, dirseklik
+- Postcare Medikal — ameliyat sonrası yastık
+- Vitasent — takviye gıda
+- İstanbul Tıp Kitabevi — medikal yayınevi, tıp kitapları
+
+### Teknoloji, gıda ve diğer
+
+- Teknoloji Gelsin — hoparlör, kulaklık, powerbank, şarj aleti ve kablosu, fan, vantilatör,
+  ısıtıcı, soğutucu, bilgisayar / ofis / akıllı ev aksesuarları
+- Aquafit — su arıtma cihazı, tankı ve filtresi; şemsiye, şezlong, plaj şemsiyesi
+- OHBE — gıda: gazoz, kola
 
 ## Notlar
 

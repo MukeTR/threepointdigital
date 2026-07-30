@@ -58,7 +58,7 @@
             "url": "https://www.threepointdigital.com/pazaryeri-reklam-yonetimi",
             "name": "Pazaryeri Reklam Yönetimi",
             "inLanguage": "tr-TR",
-            "dateModified": "2026-07-25",
+            "dateModified": "2026-07-30",
             "isPartOf": { "@id": "https://www.threepointdigital.com/#website" }
           },
           {
@@ -128,9 +128,22 @@
           <img src="/images/logo-tpd.png" alt="Three Point Digital" width="764" height="160" />
         </a>
         <nav class="desktop-nav" aria-label="Ana menü">
-          <a href="/trendyol-pazaryeri-yonetimi">Trendyol</a>
-          <a href="/amazon-tr-pazaryeri-yonetimi">Amazon TR</a>
-          <a href="/hepsiburada-pazaryeri-yonetimi">Hepsiburada</a>
+          <div class="nav-item" data-nav-dropdown>
+            <button
+              class="nav-trigger"
+              type="button"
+              aria-expanded="false"
+              aria-controls="nav-pazaryerleri"
+              data-nav-trigger
+            >
+              Pazaryerleri
+            </button>
+            <div class="nav-dropdown" id="nav-pazaryerleri">
+              <a href="/trendyol-pazaryeri-yonetimi">Trendyol<span>Mağaza, kampanya, reklam ve kârlılık yönetimi</span></a>
+              <a href="/amazon-tr-pazaryeri-yonetimi">Amazon Türkiye<span>Katalog, Öne Çıkan Teklif ve reklam yönetimi</span></a>
+              <a href="/hepsiburada-pazaryeri-yonetimi">Hepsiburada<span>Kampanya, içerik ve mağaza performansı</span></a>
+            </div>
+          </div>
           <a href="/pazaryeri-reklam-yonetimi" aria-current="page">Reklam</a>
           <a href="/e-ticaret-karlilik-hesaplama">Kârlılık</a>
           <a href="/referanslar">Referanslar</a>
@@ -149,11 +162,14 @@
         </button>
       </div>
       <nav class="mobile-menu" id="mobile-menu" aria-label="Mobil menü" data-mobile-menu>
+        <p class="mobile-menu-label">Pazaryeri yönetimi</p>
         <a href="/trendyol-pazaryeri-yonetimi">Trendyol pazaryeri yönetimi</a>
         <a href="/amazon-tr-pazaryeri-yonetimi">Amazon Türkiye pazaryeri yönetimi</a>
         <a href="/hepsiburada-pazaryeri-yonetimi">Hepsiburada pazaryeri yönetimi</a>
-        <a href="/pazaryeri-reklam-yonetimi">Pazaryeri reklam yönetimi</a>
+        <p class="mobile-menu-label">Hizmet ve araçlar</p>
+        <a href="/pazaryeri-reklam-yonetimi" aria-current="page">Pazaryeri reklam yönetimi</a>
         <a href="/e-ticaret-karlilik-hesaplama">E-ticaret kârlılık hesaplama</a>
+        <p class="mobile-menu-label">Ajans</p>
         <a href="/referanslar">Referanslar</a>
         <a href="/hakkimizda">Hakkımızda</a>
         <a class="button orange" href="/#iletisim">Ücretsiz analiz iste</a>
@@ -200,14 +216,14 @@
             <p class="eyebrow">Bu sayfada</p>
             <nav aria-label="Sayfa içeriği">
               <a href="#nedir">Reklam yönetimi nedir?</a>
-              <a href="#kimler">Kimler için uygun?</a>
+              <a href="#kimler">Kimler için?</a>
               <a href="#kapsam">Ne yapıyoruz?</a>
               <a href="#platform">Platform farkları</a>
-              <a href="#kpi">İzlenen metrikler</a>
+              <a href="#kpi">Hangi rakamlar</a>
               <a href="#plan">30 / 60 / 90 gün</a>
               <a href="#model">Çalışma modeli</a>
               <a href="#neden">Neden Three Point Digital?</a>
-              <a href="#veri">Gerekli veriler</a>
+              <a href="#veri">Sizden istediklerimiz</a>
               <a href="#sss">Sık sorulan sorular</a>
             </nav>
           </aside>
@@ -236,7 +252,7 @@
               birlikte bakılarak karar veriyoruz.
             </p>
 
-            <h2 id="kimler">Bu hizmet kimler için uygun?</h2>
+            <h2 id="kimler">Bu hizmet kimler için?</h2>
             <ul class="checklist">
               <li>Reklam harcaması aylar içinde büyüdüğü hâlde net kârı aynı kalan veya düşen markalar.</li>
               <li>Hangi ürünün reklamla büyüyeceğine karar veremeyen ekipler.</li>
@@ -250,7 +266,7 @@
               trafik taşımaya devam eder.
             </p>
 
-            <h2 id="kapsam">Ajans tam olarak hangi işleri yapar?</h2>
+            <h2 id="kapsam">Tam olarak ne yapıyoruz?</h2>
 
             <h3>1. Hesap denetimi ve temizlik</h3>
             <p>
@@ -323,7 +339,7 @@
               </table>
             </div>
 
-            <h2 id="kpi">Hangi metrikleri takip ediyoruz?</h2>
+            <h2 id="kpi">Hangi rakamlara bakıyoruz?</h2>
             <div class="table-scroll">
               <table class="kpi-table">
                 <thead>
@@ -335,13 +351,13 @@
                   <tr><td>ACOS (reklam maliyet oranı)</td><td>Reklam harcamasının reklam cirosuna oranı</td><td>Kampanya verimliliği</td></tr>
                   <tr><td>TACOS</td><td>Reklam harcamasının toplam ciroya oranı</td><td>Genel bütçe seviyesi</td></tr>
                   <tr><td>Tıklama maliyeti</td><td>Rekabet ve alaka düzeyinin göstergesi</td><td>Teklif ve anahtar kelime kararı</td></tr>
-                  <tr><td>Dönüşüm oranı</td><td>Ürün sayfasının satışa çevirme gücü</td><td>İçerik ve fiyat aksiyonu</td></tr>
+                  <tr><td>Dönüşüm oranı</td><td>Ürün sayfasının satışa çevirme gücü</td><td>İçerik ve fiyat düzenlemesi</td></tr>
                   <tr><td>Katkı kârı</td><td>Tüm maliyetler sonrası ürün başına kalan kâr</td><td>Ölçekleme veya çıkış kararı</td></tr>
                 </tbody>
               </table>
             </div>
 
-            <h2 id="plan">İlk 30, 60 ve 90 günde ne yapılır?</h2>
+            <h2 id="plan">İlk 30, 60 ve 90 günde ne yapıyoruz?</h2>
             <ol class="timeline">
               <li>
                 <strong>0–30. gün · Denetim ve durdurma</strong>
@@ -365,7 +381,7 @@
               Bu nedenle sıralama, gösterim payı veya satış artışı garantisi vermiyoruz.
             </p>
 
-            <h2 id="model">Çalışma modeli nasıldır?</h2>
+            <h2 id="model">Birlikte nasıl çalışıyoruz?</h2>
             <ul class="checklist">
               <li>Aylık sözleşme ve yazılı kapsam; ürün sayısı ve bütçe büyüklüğüne göre belirlenir.</li>
               <li>Reklam bütçesi markanın kendi satıcı hesabından harcanır.</li>
@@ -388,7 +404,7 @@
               markanın veya tek bir reklam hesabının sonucu değildir.
             </p>
 
-            <h2 id="veri">Hizmet almadan önce hangi veriler gerekir?</h2>
+            <h2 id="veri">Başlarken sizden ne istiyoruz?</h2>
             <ul class="checklist">
               <li>Reklam hesabı geçmişi: kampanya yapısı, harcama, ciro ve ACOS verileri (son 3–6 ay).</li>
               <li>Ürün listesi ve ürün bazlı alış maliyetleri.</li>

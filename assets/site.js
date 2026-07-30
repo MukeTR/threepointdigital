@@ -4,6 +4,7 @@
  * buradaki kod yalnızca etkileşim ekler.
  *
  *   1) Mobil menü (aria-expanded, Escape, dışarı tıklama)
+ *      + masaüstü "Pazaryerleri" açılır menüsü
  *   2) Ana sayfadaki kompakt kârlılık hesaplayıcı
  *      Hesaplama motoru, /e-ticaret-karlilik-hesaplama sayfasındaki Kârlılık
  *      Merkezi ile birebir aynıdır (assets/profit-studio.js → calculate).
@@ -54,6 +55,44 @@
       if (mq.addEventListener) mq.addEventListener("change", onChange);
       else if (mq.addListener) mq.addListener(onChange);
     }
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 1b) Masaüstü "Pazaryerleri" açılır menüsü
+   *
+   * Açılma/kapanma CSS tarafında :hover ve :focus-within ile de çalışır;
+   * buradaki kod dokunmatik ekran ve klavye için tıklamayla açmayı ekler.
+   * ------------------------------------------------------------------ */
+  function initDropdown() {
+    var item = document.querySelector("[data-nav-dropdown]");
+    var trigger = item && item.querySelector("[data-nav-trigger]");
+    if (!item || !trigger) return;
+
+    function setOpen(open) {
+      item.classList.toggle("open", open);
+      trigger.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+
+    trigger.addEventListener("click", function (event) {
+      event.preventDefault();
+      setOpen(trigger.getAttribute("aria-expanded") !== "true");
+    });
+
+    document.addEventListener("click", function (event) {
+      if (!item.contains(event.target)) setOpen(false);
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key !== "Escape") return;
+      if (trigger.getAttribute("aria-expanded") !== "true") return;
+      setOpen(false);
+      trigger.focus();
+    });
+
+    // Panel içindeki son bağlantıdan Tab ile çıkınca menü kapanır
+    item.addEventListener("focusout", function (event) {
+      if (!item.contains(event.relatedTarget)) setOpen(false);
+    });
   }
 
   /* ------------------------------------------------------------------ *
@@ -363,6 +402,7 @@
    * ------------------------------------------------------------------ */
   function init() {
     initNav();
+    initDropdown();
     document.querySelectorAll("[data-calculator]").forEach(initCalculator);
     initContactForm();
     document.querySelectorAll("[data-current-year]").forEach(function (element) {

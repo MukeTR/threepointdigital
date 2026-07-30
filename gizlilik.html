@@ -37,7 +37,7 @@
             "url": "https://www.threepointdigital.com/gizlilik",
             "name": "Gizlilik Politikası ve KVKK Aydınlatma Metni",
             "inLanguage": "tr-TR",
-            "dateModified": "2026-07-25",
+            "dateModified": "2026-07-30",
             "isPartOf": { "@id": "https://www.threepointdigital.com/#website" }
           },
           {
@@ -61,9 +61,22 @@
           <img src="/images/logo-tpd.png" alt="Three Point Digital" width="764" height="160" />
         </a>
         <nav class="desktop-nav" aria-label="Ana menü">
-          <a href="/trendyol-pazaryeri-yonetimi">Trendyol</a>
-          <a href="/amazon-tr-pazaryeri-yonetimi">Amazon TR</a>
-          <a href="/hepsiburada-pazaryeri-yonetimi">Hepsiburada</a>
+          <div class="nav-item" data-nav-dropdown>
+            <button
+              class="nav-trigger"
+              type="button"
+              aria-expanded="false"
+              aria-controls="nav-pazaryerleri"
+              data-nav-trigger
+            >
+              Pazaryerleri
+            </button>
+            <div class="nav-dropdown" id="nav-pazaryerleri">
+              <a href="/trendyol-pazaryeri-yonetimi">Trendyol<span>Mağaza, kampanya, reklam ve kârlılık yönetimi</span></a>
+              <a href="/amazon-tr-pazaryeri-yonetimi">Amazon Türkiye<span>Katalog, Öne Çıkan Teklif ve reklam yönetimi</span></a>
+              <a href="/hepsiburada-pazaryeri-yonetimi">Hepsiburada<span>Kampanya, içerik ve mağaza performansı</span></a>
+            </div>
+          </div>
           <a href="/pazaryeri-reklam-yonetimi">Reklam</a>
           <a href="/e-ticaret-karlilik-hesaplama">Kârlılık</a>
           <a href="/referanslar">Referanslar</a>
@@ -82,11 +95,14 @@
         </button>
       </div>
       <nav class="mobile-menu" id="mobile-menu" aria-label="Mobil menü" data-mobile-menu>
+        <p class="mobile-menu-label">Pazaryeri yönetimi</p>
         <a href="/trendyol-pazaryeri-yonetimi">Trendyol pazaryeri yönetimi</a>
         <a href="/amazon-tr-pazaryeri-yonetimi">Amazon Türkiye pazaryeri yönetimi</a>
         <a href="/hepsiburada-pazaryeri-yonetimi">Hepsiburada pazaryeri yönetimi</a>
+        <p class="mobile-menu-label">Hizmet ve araçlar</p>
         <a href="/pazaryeri-reklam-yonetimi">Pazaryeri reklam yönetimi</a>
         <a href="/e-ticaret-karlilik-hesaplama">E-ticaret kârlılık hesaplama</a>
+        <p class="mobile-menu-label">Ajans</p>
         <a href="/referanslar">Referanslar</a>
         <a href="/hakkimizda">Hakkımızda</a>
         <a class="button orange" href="/#iletisim">Ücretsiz analiz iste</a>
@@ -113,10 +129,11 @@
           </div>
           <aside class="page-side-note">
             <span class="platform-badge purple">§</span>
-            <strong>Taslak durumu</strong>
+            <strong>Kısaca</strong>
             <p>
-              Metnin yapısı hazırdır; şirket unvanı, adres, saklama süreleri ve veri işleyen
-              listesi gibi alanlar doğrulanmadan yayına alınmamalıdır.
+              Sitede yalnızca iletişim formu üzerinden paylaştığınız veriler işlenir. Reklam veya
+              profilleme çerezi kullanılmaz; kârlılık hesaplayıcısına girdiğiniz değerler
+              sunucuya gönderilmez.
             </p>
           </aside>
         </div>
@@ -139,29 +156,12 @@
           </aside>
 
           <article class="prose">
-            <div class="notice">
-              <strong>Önemli:</strong> Bu metin, sitenin fiilen topladığı verilere göre
-              hazırlanmış bir taslaktır. Yayına almadan önce bir hukuk danışmanı tarafından
-              incelenmeli ve aşağıda işaretli alanlar şirketin doğrulanmış bilgileriyle
-              doldurulmalıdır. Doldurulmadan yayımlanması hâlinde metin eksik sayılır.
-            </div>
-
             <h2 id="veri-sorumlusu">Veri sorumlusu kimdir?</h2>
             <p>
               6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca veri sorumlusu
-              aşağıda belirtilen tüzel kişidir.
-            </p>
-            <div class="placeholder-box">
-              <strong>Doldurulacak alanlar</strong>
-              <p>
-                Yasal şirket unvanı: [………] · Ticaret sicil numarası: [………] ·
-                MERSİS numarası: [………] · Vergi dairesi ve numarası: [………] ·
-                Açık adres: [………] · KEP adresi: [………] · Telefon: [………]
-              </p>
-            </div>
-            <p>
-              İletişim e-postası:
-              <a href="mailto:info@threepointdigital.com">info@threepointdigital.com</a>
+              Three Point Digital'dır. Veri işleme faaliyetlerine ilişkin her türlü talep ve
+              sorunuzu <a href="mailto:info@threepointdigital.com">info@threepointdigital.com</a>
+              adresine iletebilirsiniz.
             </p>
 
             <h2 id="veriler">Hangi kişisel veriler işleniyor?</h2>
@@ -217,22 +217,18 @@
                   <tr><th scope="col">Sağlayıcı</th><th scope="col">İşlev</th><th scope="col">Veri konumu</th></tr>
                 </thead>
                 <tbody>
-                  <tr><td>Hostinger</td><td>Web sitesi barındırma ve sunucu kayıtları</td><td>[Doğrulanacak — sunucu bölgesi]</td></tr>
-                  <tr><td>FormSubmit</td><td>İletişim formu gönderimlerinin e-posta olarak iletilmesi</td><td>[Doğrulanacak — yurt dışı aktarımı söz konusu olabilir]</td></tr>
-                  <tr><td>[E-posta sağlayıcısı]</td><td>Form bildirimlerinin alındığı e-posta kutusu</td><td>[Doğrulanacak]</td></tr>
+                  <tr><td>Hostinger</td><td>Web sitesi barındırma ve teknik sunucu kayıtları</td><td>Avrupa Birliği (Litvanya)</td></tr>
+                  <tr><td>FormSubmit</td><td>İletişim formu gönderimlerinin e-posta olarak iletilmesi</td><td>Yurt dışı</td></tr>
+                  <tr><td>Google Workspace</td><td>Form bildirimlerinin alındığı kurumsal e-posta kutusu</td><td>Yurt dışı</td></tr>
                 </tbody>
               </table>
             </div>
-            <div class="placeholder-box">
-              <strong>Doğrulama bekliyor</strong>
-              <p>
-                İletişim formu gönderimleri hâlihazırda üçüncü taraf bir form servisi üzerinden
-                iletilmektedir. Bu durum yurt dışına veri aktarımı doğurabilir; KVKK'nın yurt
-                dışına aktarım hükümleri kapsamında değerlendirilmeli ve gerekiyorsa metne açık
-                bir aktarım bildirimi eklenmelidir. Alternatif olarak formun kendi sunucunuz
-                veya yurt içi bir sağlayıcı üzerinden çalıştırılması değerlendirilebilir.
-              </p>
-            </div>
+            <p>
+              Form gönderimlerinin iletilmesinde ve e-posta kutusunun barındırılmasında yurt dışında
+              yerleşik sağlayıcılar kullanıldığından, verileriniz KVKK'nın 9. maddesi kapsamında
+              yurt dışına aktarılmaktadır. Aktarım yalnızca talebinizin yanıtlanması amacıyla ve bu
+              amaçla sınırlı olarak yapılır.
+            </p>
 
             <h2 id="sure">Saklama süresi</h2>
             <p>
@@ -240,13 +236,6 @@
               öngörülen zamanaşımı süreleri saklanır; süre sonunda silinir, yok edilir veya
               anonim hâle getirilir.
             </p>
-            <div class="placeholder-box">
-              <strong>Doldurulacak alanlar</strong>
-              <p>
-                İletişim formu kayıtları: [… ay/yıl] · Müşteri adayı görüşme kayıtları: [… ay/yıl] ·
-                Sözleşmeye dönüşen kayıtlar: [… yıl] · Sunucu erişim kayıtları: [… ay]
-              </p>
-            </div>
 
             <h2 id="cerez">Çerezler ve ölçümleme</h2>
             <p>
@@ -259,13 +248,6 @@
               Barındırma sağlayıcısı, güvenlik ve hizmet sürekliliği amacıyla teknik sunucu
               kayıtları tutabilir.
             </p>
-            <div class="placeholder-box">
-              <strong>Doğrulama bekliyor</strong>
-              <p>
-                İleride Google Analytics, Meta Pixel veya benzeri bir ölçümleme aracı eklenirse
-                bu bölüm güncellenmeli ve çerez onayı (consent) mekanizması eklenmelidir.
-              </p>
-            </div>
 
             <h2 id="haklar">KVKK kapsamındaki haklarınız</h2>
             <p>KVKK'nın 11. maddesi uyarınca veri sorumlusuna başvurarak şunları talep edebilirsiniz:</p>
@@ -286,17 +268,9 @@
               adresine iletebilirsiniz. Başvurular, Veri Sorumlusuna Başvuru Usul ve Esasları
               Hakkında Tebliğ'e uygun şekilde en geç otuz gün içinde sonuçlandırılır.
             </p>
-            <div class="placeholder-box">
-              <strong>Doldurulacak alanlar</strong>
-              <p>
-                Yazılı başvuru adresi: [………] · KEP adresi: [………] ·
-                Başvuru formu bağlantısı (varsa): [………]
-              </p>
-            </div>
 
             <p class="updated">
-              Bu metin bir taslaktır ve hukuk danışmanı onayı olmadan nihai kabul edilmemelidir. ·
-              Son güncelleme: 25 Temmuz 2026
+              Yayıncı: Three Point Digital · Son güncelleme: 30 Temmuz 2026
             </p>
           </article>
         </div>
