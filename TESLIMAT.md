@@ -7,6 +7,98 @@
 
 ---
 
+## 0z. Yönetim paneli ve lead kaybının önlenmesi — 3 Ağustos 2026
+
+### Neden yapıldı
+
+Canlıdaki `/api/durum` ucu `{"ok":true,"supabase":false}` döndürüyordu: hPanel'de
+`SUPABASE_URL` / `SUPABASE_SERVICE_KEY` ortam değişkenleri hiç tanımlanmamıştı. Bu yüzden
+Kârlılık Merkezi kayıt formu **cihaz modunda** çalışıyor, kullanıcıya "kaydoldun" diyor ama
+ad-soyad / e-posta / telefon hiçbir yere yazılmıyordu. Kayıtlar sunucu günlüğüne de
+düşmediği için geriye dönük kurtarılamaz.
+
+İletişim formu ise yalnızca FormSubmit ile e-postaya gidiyordu; posta kutusu dışında
+kaydı yoktu.
+
+### Ne yapıldı
+
+1. **İletişim formu çift kanala çıkarıldı.** `POST /api/iletisim` talebi önce Supabase'e
+   yazar, sonra FormSubmit ile e-posta gönderir. Sunucuya hiç ulaşılamazsa tarayıcı
+   doğrudan FormSubmit'e düşer. Üç katmandan biri çalıştığı sürece talep kaybolmaz.
+2. **Yönetim paneli eklendi** (`/admin`): talep listesi, detay, durum takibi, not, arama,
+   tarih filtresi, CSV dışa aktarım ve Kârlılık Merkezi kayıtları sekmesi.
+3. **Sessiz düşüş bitti.** Supabase yapılandırılmamışsa panelde kırmızı uyarı şeridi çıkar,
+   `/api/durum` eksik değişkenleri tek tek listeler, sunucu günlüğüne hata yazılır.
+
+### Kurulum (canlıya alırken bir kez yapılacak)
+
+**1. Supabase şeması.** SQL Editor'de `supabase/schema.sql` dosyasını çalıştırın.
+Dosya yeniden çalıştırılabilir (`if not exists`); mevcut `tpd_registrations` tablosuna
+dokunmaz, `tpd_leads` tablosunu ekler.
+
+**2. Panel şifresinin özetini üretin.** Düz şifreyi değil, sha256 özetini ortam
+değişkenine koyuyoruz:
+
+```bash
+node -e "console.log(require('crypto').createHash('sha256').update('BURAYA_ŞİFRE').digest('hex'))"
+```
+
+**3. hPanel → Node.js uygulaması → ortam değişkenleri:**
+
+| Değişken | Değer | Zorunlu |
+|---|---|---|
+| `SUPABASE_URL` | `https://<ref>.supabase.co` | Evet |
+| `SUPABASE_SERVICE_KEY` | `service_role` anahtarı | Evet |
+| `ADMIN_PASSWORD_HASH` | 2. adımda üretilen 64 karakterlik özet | Evet |
+| `ADMIN_USERNAME` | Panel kullanıcı adı | Hayır — varsayılan `admin` |
+| `ADMIN_SESSION_SECRET` | Rastgele uzun metin (oturum imzası) | Hayır — yoksa şifreden türetilir |
+| `CONTACT_EMAIL` | Form e-postalarının gideceği adres | Hayır — varsayılan `info@threepointdigital.com` |
+| `SUPABASE_TABLE` / `LEADS_TABLE` | Tablo adları | Hayır — varsayılanlar `tpd_registrations` / `tpd_leads` |
+
+**4. Uygulamayı yeniden başlatın**, sonra doğrulayın:
+
+```bash
+curl -s https://www.threepointdigital.com/api/durum
+# {"ok":true,"supabase":true,"admin":true,"mod":"sync","eksikDegiskenler":[],"uyari":null}
+```
+
+`eksikDegiskenler` boş değilse orada yazan değişken hPanel'de tanımlanmamıştır.
+
+**5. FormSubmit aktivasyonu.** FormSubmit ilk gönderimde hedef adrese bir aktivasyon
+e-postası yollar. `info@threepointdigital.com` kutusunda bu mail tıklanmadıysa e-posta
+kanalı sessizce çalışmaz. Panelde her talebin **"E-posta gönderimi"** satırı bu kanalın
+o talep için çalışıp çalışmadığını gösterir.
+
+### Panelin kullanımı
+
+- Adres: `https://www.threepointdigital.com/admin` — kullanıcı adı + şifre, oturum 7 gün
+  açık kalır. Kullanıcı adı büyük/küçük harf duyarsızdır; yanlış kullanıcı adı ile yanlış
+  şifre aynı hatayı döndürür (hangisinin yanlış olduğu sızmaz).
+- Sol kenarı turuncu satırlar **henüz açılmamış** taleplerdir; açılınca okundu sayılır.
+- Durum akışı: `Yeni → Arandı → Teklif verildi → Kazanıldı / Kayıp`.
+- Detayda **Ara**, **WhatsApp**, **E-posta yaz** kısayolları vardır.
+- **CSV indir** o anki filtreyi dışa aktarır (Excel için noktalı virgül + BOM'lu UTF-8).
+
+### Güvenlik
+
+- Şifre sunucuda yalnızca sha256 özeti olarak durur; karşılaştırma sabit sürelidir.
+- Oturum çerezi HMAC imzalı, `HttpOnly`, `SameSite=Strict`, HTTPS'te `Secure`.
+- IP başına 5 hatalı denemeden sonra 15 dakika kilit.
+- Yazma isteklerinde `Origin` kontrolü.
+- `admin.html` dosya olarak istenirse 404 döner; panel yalnızca `/admin` üzerinden ve
+  oturumla servis edilir. `.htaccess` içinde ayrıca `Require all denied` sigortası vardır.
+- `robots.txt`'te `Disallow: /admin`, sayfada `X-Robots-Tag: noindex`.
+
+### Test durumu
+
+Yerelde sahte bir Supabase/FormSubmit ucuyla uçtan uca doğrulandı: talep gönderimi
+(veritabanı + e-posta), giriş, oturum, kaba kuvvet kilidi, sahte çerez reddi, yabancı
+`Origin` reddi, durum/not güncelleme, geçersiz durum ve id reddi, CSV çıktısı, panel
+arayüzü. **Gerçek Supabase projesiyle ve gerçek FormSubmit hesabıyla canlı test
+yapılmadı** — 4. ve 5. adımlardaki doğrulamalar bu yüzden gereklidir.
+
+---
+
 ## 0a. Kârlılık Merkezi entegrasyonu — 25 Temmuz 2026
 
 `TPD-Profit-Studio-Claude-Handoff.zip` paketindeki uygulama siteye taşındı ve eski basit

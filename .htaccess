@@ -118,3 +118,14 @@ ErrorDocument 404 /404.html
 # Dizin listelemesini kapat
 # ---------------------------------------------------------------------
 Options -Indexes
+
+# ---------------------------------------------------------------------
+# Yönetim paneli dosyası
+#
+# Panel yalnızca Node uygulaması üzerinden (/admin, oturum kontrolüyle)
+# servis edilmelidir. Site herhangi bir nedenle Apache/LiteSpeed tarafından
+# statik olarak sunulursa admin.html'in şifresiz açılmasını bu kural engeller.
+# ---------------------------------------------------------------------
+<Files "admin.html">
+  Require all denied
+</Files>

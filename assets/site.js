@@ -382,17 +382,33 @@
       }
 
       var data = new FormData(form);
-      var payload = {
+
+      // Birincil kanal: kendi sunucumuz. Talebi hem veritabanına yazar (panelde
+      // görünsün diye) hem de FormSubmit ile e-postaya iletir.
+      var lead = {
+        name: data.get("name") || "",
+        brand: data.get("brand") || "",
+        email: data.get("email") || "",
+        phone: data.get("phone") || "",
+        marketplace: data.get("marketplace") || "",
+        revenue: data.get("revenue") || "",
+        message: data.get("message") || "",
+        page: window.location.href
+      };
+
+      // Yedek kanal: sunucuya hiç ulaşılamazsa tarayıcı doğrudan FormSubmit'e
+      // gönderir; talep en azından posta kutusuna düşer.
+      var fallbackPayload = {
         _subject: "Ücretsiz pazaryeri analizi talebi — threepointdigital.com",
         _template: "table",
-        Ad: data.get("name") || "-",
-        Marka: data.get("brand") || "-",
-        "E-posta": data.get("email") || "-",
-        Telefon: data.get("phone") || "-",
-        "Öncelikli pazaryeri": data.get("marketplace") || "-",
-        "Aylık ciro aralığı": data.get("revenue") || "-",
-        Mesaj: data.get("message") || "-",
-        "Gönderim sayfası": window.location.href
+        Ad: lead.name || "-",
+        Marka: lead.brand || "-",
+        "E-posta": lead.email || "-",
+        Telefon: lead.phone || "-",
+        "Öncelikli pazaryeri": lead.marketplace || "-",
+        "Aylık ciro aralığı": lead.revenue || "-",
+        Mesaj: lead.message || "-",
+        "Gönderim sayfası": lead.page
       };
 
       var originalLabel = button ? button.textContent : "";
@@ -402,27 +418,44 @@
       }
       showStatus("Gönderiliyor…", "pending");
 
-      fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(payload)
-      })
-        .then(function (response) {
-          return response.json().catch(function () {
-            return {};
+      function json(url, payload) {
+        return fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(payload)
+        }).then(function (response) {
+          return response.json().catch(function () { return {}; }).then(function (result) {
+            return { ok: response.ok, status: response.status, data: result };
           });
-        })
-        .then(function (result) {
-          if (result && (result.success === true || result.success === "true")) {
-            form.reset();
-            showStatus(
-              "Teşekkürler, talebiniz bize ulaştı. 1 iş günü içinde dönüş yapacağız.",
-              "ok"
-            );
-          } else {
-            throw new Error("gonderilemedi");
+        });
+      }
+
+      function basarili() {
+        form.reset();
+        showStatus(
+          "Teşekkürler, talebiniz bize ulaştı. 1 iş günü içinde dönüş yapacağız.",
+          "ok"
+        );
+      }
+
+      function yedekKanal() {
+        return json(endpoint, fallbackPayload).then(function (r) {
+          if (r.data && (r.data.success === true || r.data.success === "true")) return basarili();
+          throw new Error("gonderilemedi");
+        });
+      }
+
+      json("/api/iletisim", lead)
+        .then(function (r) {
+          if (r.ok) return basarili();
+          // 400: kullanıcı hatası — yedek kanala düşmenin anlamı yok.
+          if (r.status === 400 && r.data && r.data.error) {
+            showStatus(r.data.error, "error");
+            return;
           }
+          return yedekKanal();
         })
+        .catch(yedekKanal)
         .catch(function () {
           showStatus(
             "Form gönderilemedi. Lütfen tekrar deneyin veya info@threepointdigital.com adresine yazın.",

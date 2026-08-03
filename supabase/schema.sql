@@ -33,3 +33,75 @@ create or replace view public.tpd_kayitlar as
     updated_at as son_islem
   from public.tpd_registrations
   order by created_at desc;
+
+
+-- ===========================================================================
+-- İletişim formu talepleri (ana sayfadaki "Ücretsiz analiz iste")
+--
+-- Form eskiden yalnızca FormSubmit ile e-postaya gidiyordu; posta kutusu
+-- dışında hiçbir yerde durmuyordu. Artık talep buraya da yazılır ve
+-- /admin panelinden takip edilir. E-posta gönderimi de sürüyor: iki kanaldan
+-- biri çalışmazsa talep yine de kaybolmaz.
+-- ===========================================================================
+
+create table if not exists public.tpd_leads (
+  id           uuid primary key,
+  full_name    text not null,
+  brand        text not null,
+  email        text not null,
+  phone        text,                              -- 5xxxxxxxxx (10 hane) veya boş
+  marketplace  text,
+  revenue      text,
+  message      text not null,
+  source_page  text,                              -- talebin gönderildiği sayfa
+  status       text not null default 'yeni',      -- yeni | arandi | teklif | kazanildi | kayip
+  note         text not null default '',          -- ekip notu (panelden yazılır)
+  read_at      timestamptz,                       -- panelde ilk açılış anı
+  emailed      boolean not null default false,    -- FormSubmit e-postası gitti mi
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+
+create index if not exists tpd_leads_created_idx on public.tpd_leads (created_at desc);
+create index if not exists tpd_leads_status_idx  on public.tpd_leads (status);
+create index if not exists tpd_leads_email_idx   on public.tpd_leads (email);
+
+-- Yalnızca sunucu (servis anahtarı) erişir; tarayıcıya tamamen kapalı.
+alter table public.tpd_leads enable row level security;
+
+-- Durum değerini veritabanı seviyesinde de sınırla; panelde bir hata olsa bile
+-- tabloya tanımsız durum düşmesin.
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'tpd_leads_status_chk'
+  ) then
+    alter table public.tpd_leads
+      add constraint tpd_leads_status_chk
+      check (status in ('yeni', 'arandi', 'teklif', 'kazanildi', 'kayip'));
+  end if;
+end $$;
+
+-- Panel dışında (Supabase Table Editor'de) okumak için okunaklı görünüm.
+create or replace view public.tpd_talepler as
+  select
+    created_at as talep_tarihi,
+    full_name  as ad_soyad,
+    brand      as marka,
+    email      as eposta,
+    case when phone is null or phone = '' then '-' else '0' || phone end as telefon,
+    marketplace as pazaryeri,
+    revenue    as ciro_araligi,
+    message    as mesaj,
+    case status
+      when 'yeni'      then 'Yeni'
+      when 'arandi'    then 'Arandı'
+      when 'teklif'    then 'Teklif verildi'
+      when 'kazanildi' then 'Kazanıldı'
+      when 'kayip'     then 'Kayıp'
+      else status
+    end as durum,
+    note       as not,
+    source_page as geldigi_sayfa
+  from public.tpd_leads
+  order by created_at desc;

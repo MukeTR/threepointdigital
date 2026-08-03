@@ -45,4 +45,10 @@ Allow: /
 User-agent: *
 Allow: /
 
+# --- Yönetim paneli ---
+# Panel zaten şifreyle korunuyor ve X-Robots-Tag: noindex başlığı gönderiyor;
+# bu satır dizine düşme ihtimalini kökten kapatır.
+User-agent: *
+Disallow: /admin
+
 Sitemap: https://www.threepointdigital.com/sitemap.xml
