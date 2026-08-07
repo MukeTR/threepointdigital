@@ -27,10 +27,25 @@ const crypto = require('crypto');
  * tamamlar. Dosya git'e girmez (.gitignore) ve web'den istenirse 404 döner
  * (isPrivatePath: nokta ile başlayan yollar kapalıdır).
  */
+function findEnvFile() {
+  // Hostinger her dağıtımda yeni bir sürüm klasörü oluşturur (hbuilds/versions/...),
+  // bu yüzden uygulamanın yanındaki .env dağıtımda kaybolur. Dosya üst dizinlerde
+  // de aranır; domain kökündeki .env dağıtımlardan etkilenmez.
+  let dir = __dirname;
+  for (let i = 0; i < 6; i += 1) {
+    const candidate = path.join(dir, '.env');
+    if (fs.existsSync(candidate)) return candidate;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return null;
+}
+
 (function loadEnvFile() {
   try {
-    const envPath = path.join(__dirname, '.env');
-    if (!fs.existsSync(envPath)) return;
+    const envPath = findEnvFile();
+    if (!envPath) return;
     let yuklenen = 0;
     fs.readFileSync(envPath, 'utf8').split('\n').forEach((line) => {
       const trimmed = line.trim();
@@ -51,7 +66,7 @@ const crypto = require('crypto');
         yuklenen += 1;
       }
     });
-    if (yuklenen) console.log(`[env] .env dosyasından ${yuklenen} değişken yüklendi`);
+    if (yuklenen) console.log(`[env] ${envPath} dosyasından ${yuklenen} değişken yüklendi`);
   } catch (error) {
     console.error('[env] .env okunamadı:', error && error.message);
   }
