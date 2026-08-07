@@ -99,16 +99,14 @@ const SUPABASE_TABLE = process.env.SUPABASE_TABLE || 'tpd_registrations';
 const hasSupabase = () => Boolean(SUPABASE_URL && SUPABASE_SERVICE_KEY);
 
 // --- İletişim formu ---------------------------------------------------------
-// Talep iki kanala birden gider: Supabase (panelde görünsün diye) ve FormSubmit
-// (posta kutusuna düşsün diye). Biri çalışmazsa diğeri talebi kurtarır.
+// Talep yalnızca Supabase'e yazılır ve /admin panelinden takip edilir.
+// (E-posta gönderimi kaldırıldı: FormSubmit form aktivasyonu istiyordu ve
+//  aktive edilmediği sürece hiçbir bildirim göndermiyordu.)
+//
+// Tek kanal kaldığı için yazma başarısız olursa talep kaybolmasın diye
+// LEAD_FALLBACK_LOG dosyasına da bir satır düşülür (aşağıya bakın).
 const LEADS_TABLE = process.env.LEADS_TABLE || 'tpd_leads';
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'info@threepointdigital.com';
-// Yerel testte gerçek e-posta gönderilmesin diye uç adres değiştirilebilir.
-const FORMSUBMIT_URL = process.env.FORMSUBMIT_URL || 'https://formsubmit.co/ajax/' + CONTACT_EMAIL;
-// FormSubmit, Referer/Origin başlığı taşımayan istekleri reddediyor
-// ("FormSubmit will not work in pages browsed as HTML files"). İstek tarayıcıdan
-// değil sunucudan gittiği için bu başlıkları elle eklemek gerekiyor.
-const SITE_URL = (process.env.SITE_URL || 'https://www.threepointdigital.com').replace(/\/+$/, '');
 
 // --- Yönetim paneli ---------------------------------------------------------
 // Tek yönetici şifresi. Tercihen ADMIN_PASSWORD_HASH (şifrenin sha256 özeti)
@@ -397,9 +395,8 @@ async function handleProducts(req, res, url) {
 
 /* ==========================================================================
    İletişim formu — POST /api/iletisim
-   Talep önce Supabase'e yazılır, ardından FormSubmit ile e-postaya iletilir.
-   İki kanaldan biri başarısız olsa bile talep kaybolmaz; her ikisi de
-   başarısızsa tarayıcı doğrudan FormSubmit'e düşer (bkz. assets/site.js).
+   Talep Supabase'e yazılır ve /admin panelinden takip edilir. Yazma başarısız
+   olursa talep kaybolmasın diye diskteki yedek dosyaya düşülür (lastResortLog).
    ========================================================================== */
 
 const MARKETPLACES = [
@@ -414,41 +411,23 @@ function clean(value, maxLength) {
   return String(value == null ? '' : value).trim().replace(/\s+/g, ' ').slice(0, maxLength);
 }
 
-// FormSubmit'e talebi e-posta olarak iletir. Hata fırlatmaz; sonucu döndürür,
-// çünkü e-posta gitmese bile kayıt veritabanında durabilir.
-async function sendLeadEmail(lead) {
+/* Son çare yedeği.
+ *
+ * Veritabanına yazılamayan talep buraya bir JSON satırı olarak düşer. Dosya
+ * .env ile aynı klasördedir (domain kökü), yani dağıtımlardan etkilenmez.
+ * Buraya bir satır düşmesi "Supabase erişilemedi" demektir; kayıt elle
+ * tabloya taşınabilir.
+ */
+function lastResortLog(lead, sebep) {
   try {
-    const response = await fetch(FORMSUBMIT_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        Referer: SITE_URL + '/',
-        Origin: SITE_URL,
-      },
-      body: JSON.stringify({
-        _subject: 'Ücretsiz pazaryeri analizi talebi — threepointdigital.com',
-        _template: 'table',
-        Ad: lead.full_name,
-        Marka: lead.brand,
-        'E-posta': lead.email,
-        Telefon: lead.phone ? '0' + lead.phone : '-',
-        'Öncelikli pazaryeri': lead.marketplace || '-',
-        'Aylık ciro aralığı': lead.revenue || '-',
-        Mesaj: lead.message,
-        'Gönderim sayfası': lead.source_page || '-',
-      }),
-    });
-    if (!response.ok) {
-      console.error('[iletisim] FormSubmit yanıtı', response.status);
-      return false;
-    }
-    const result = await response.json().catch(() => ({}));
-    const ok = result && (result.success === true || result.success === 'true');
-    if (!ok) console.error('[iletisim] FormSubmit başarısız', JSON.stringify(result).slice(0, 300));
-    return Boolean(ok);
+    const envPath = findEnvFile();
+    const dir = envPath ? path.dirname(envPath) : __dirname;
+    const satir = JSON.stringify(Object.assign({ ts: new Date().toISOString(), sebep }, lead)) + '\n';
+    fs.appendFileSync(path.join(dir, 'kayit-edilemeyen-talepler.log'), satir, { mode: 0o600 });
+    console.error('[iletisim] talep yedek dosyaya yazıldı:', sebep);
+    return true;
   } catch (error) {
-    console.error('[iletisim] FormSubmit hatası', error && error.message);
+    console.error('[iletisim] YEDEK DOSYA DA YAZILAMADI', error && error.message);
     return false;
   }
 }
@@ -490,45 +469,38 @@ async function handleContact(req, res) {
   }
   if (lead.marketplace && !MARKETPLACES.includes(lead.marketplace)) lead.marketplace = '';
 
-  // E-posta ve veritabanı birbirini beklemez; ikisi de denenir.
-  const emailPromise = sendLeadEmail(lead);
-
   let stored = false;
+  let sebep = '';
+
   if (hasSupabase()) {
     try {
       const inserted = await supabase(`/rest/v1/${LEADS_TABLE}`, {
         method: 'POST',
         headers: { Prefer: 'return=minimal' },
-        body: JSON.stringify(Object.assign({}, lead, { emailed: false })),
+        body: JSON.stringify(lead),
       });
       stored = inserted.ok;
       if (!inserted.ok) {
+        sebep = 'supabase-' + inserted.status;
         console.error('[iletisim] Supabase insert hatası', inserted.status, (await inserted.text()).slice(0, 300));
       }
     } catch (error) {
+      sebep = 'supabase-erisilemedi';
       console.error('[iletisim] Supabase hatası', error && error.message);
     }
   } else {
-    console.error('[iletisim] SUPABASE_URL/SUPABASE_SERVICE_KEY tanımsız — talep panele düşmeyecek, yalnızca e-posta gönderildi');
+    sebep = 'supabase-yapilandirilmadi';
+    console.error('[iletisim] SUPABASE_URL/SUPABASE_SERVICE_KEY tanımsız — talep tabloya yazılamıyor');
   }
 
-  const emailed = await emailPromise;
+  if (stored) return jsonResponse(res, 201, { ok: true, stored: true });
 
-  // Kayıt yazıldıysa e-posta durumunu işaretle (panelde görünsün).
-  if (stored && emailed && hasSupabase()) {
-    supabase(`/rest/v1/${LEADS_TABLE}?id=eq.${lead.id}`, {
-      method: 'PATCH',
-      headers: { Prefer: 'return=minimal' },
-      body: JSON.stringify({ emailed: true }),
-    }).catch(() => {});
+  // Veritabanı tek kanal olduğu için yazılamayan talep diske düşer.
+  if (lastResortLog(lead, sebep)) {
+    return jsonResponse(res, 201, { ok: true, stored: false, yedeklendi: true });
   }
 
-  if (!stored && !emailed) {
-    // Her iki kanal da başarısız: tarayıcı FormSubmit'e kendisi düşecek.
-    return jsonResponse(res, 502, { error: 'Form gönderilemedi.', fallback: true });
-  }
-
-  return jsonResponse(res, 201, { ok: true, stored, emailed });
+  return jsonResponse(res, 502, { error: 'Form gönderilemedi.' });
 }
 
 /* ==========================================================================

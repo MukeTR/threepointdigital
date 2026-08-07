@@ -9,7 +9,7 @@
  *   2) Ana sayfadaki kompakt kârlılık hesaplayıcı
  *      Hesaplama motoru, /e-ticaret-karlilik-hesaplama sayfasındaki Kârlılık
  *      Merkezi ile birebir aynıdır (assets/profit-studio.js → calculate).
- *   3) İletişim formu → FormSubmit (mevcut entegrasyon korundu)
+ *   3) İletişim formu → /api/iletisim (veritabanı)
  *   4) Footer yılı
  */
 (function () {
@@ -348,13 +348,12 @@
   }
 
   /* ------------------------------------------------------------------ *
-   * 3) İletişim formu → FormSubmit
+   * 3) İletişim formu → /api/iletisim
    * ------------------------------------------------------------------ */
   function initContactForm() {
     var form = document.querySelector("[data-contact-form]");
     if (!form) return;
 
-    var endpoint = form.getAttribute("data-endpoint");
     var status = form.querySelector("[data-form-status]");
     var button = form.querySelector('button[type="submit"]');
 
@@ -383,8 +382,8 @@
 
       var data = new FormData(form);
 
-      // Birincil kanal: kendi sunucumuz. Talebi hem veritabanına yazar (panelde
-      // görünsün diye) hem de FormSubmit ile e-postaya iletir.
+      // Talep kendi sunucumuza gider, oradan veritabanına yazılır ve /admin
+      // panelinde listelenir. E-posta gönderimi yoktur.
       var lead = {
         name: data.get("name") || "",
         brand: data.get("brand") || "",
@@ -394,21 +393,6 @@
         revenue: data.get("revenue") || "",
         message: data.get("message") || "",
         page: window.location.href
-      };
-
-      // Yedek kanal: sunucuya hiç ulaşılamazsa tarayıcı doğrudan FormSubmit'e
-      // gönderir; talep en azından posta kutusuna düşer.
-      var fallbackPayload = {
-        _subject: "Ücretsiz pazaryeri analizi talebi — threepointdigital.com",
-        _template: "table",
-        Ad: lead.name || "-",
-        Marka: lead.brand || "-",
-        "E-posta": lead.email || "-",
-        Telefon: lead.phone || "-",
-        "Öncelikli pazaryeri": lead.marketplace || "-",
-        "Aylık ciro aralığı": lead.revenue || "-",
-        Mesaj: lead.message || "-",
-        "Gönderim sayfası": lead.page
       };
 
       var originalLabel = button ? button.textContent : "";
@@ -438,24 +422,16 @@
         );
       }
 
-      function yedekKanal() {
-        return json(endpoint, fallbackPayload).then(function (r) {
-          if (r.data && (r.data.success === true || r.data.success === "true")) return basarili();
-          throw new Error("gonderilemedi");
-        });
-      }
-
       json("/api/iletisim", lead)
         .then(function (r) {
           if (r.ok) return basarili();
-          // 400: kullanıcı hatası — yedek kanala düşmenin anlamı yok.
+          // 400: kullanıcının doldurduğu alanlarda sorun var, mesajı göster.
           if (r.status === 400 && r.data && r.data.error) {
             showStatus(r.data.error, "error");
             return;
           }
-          return yedekKanal();
+          throw new Error("gonderilemedi");
         })
-        .catch(yedekKanal)
         .catch(function () {
           showStatus(
             "Form gönderilemedi. Lütfen tekrar deneyin veya info@threepointdigital.com adresine yazın.",

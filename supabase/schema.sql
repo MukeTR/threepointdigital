@@ -38,10 +38,9 @@ create or replace view public.tpd_kayitlar as
 -- ===========================================================================
 -- İletişim formu talepleri (ana sayfadaki "Ücretsiz analiz iste")
 --
--- Form eskiden yalnızca FormSubmit ile e-postaya gidiyordu; posta kutusu
--- dışında hiçbir yerde durmuyordu. Artık talep buraya da yazılır ve
--- /admin panelinden takip edilir. E-posta gönderimi de sürüyor: iki kanaldan
--- biri çalışmazsa talep yine de kaybolmaz.
+-- Talep buraya yazılır ve /admin panelinden takip edilir. E-posta gönderimi
+-- yoktur: FormSubmit form aktivasyonu istediği ve aktive edilmediği sürece
+-- sessizce hiçbir bildirim göndermediği için kaldırıldı.
 -- ===========================================================================
 
 create table if not exists public.tpd_leads (
@@ -57,7 +56,6 @@ create table if not exists public.tpd_leads (
   status       text not null default 'yeni',      -- yeni | arandi | teklif | kazanildi | kayip
   note         text not null default '',          -- ekip notu (panelden yazılır)
   read_at      timestamptz,                       -- panelde ilk açılış anı
-  emailed      boolean not null default false,    -- FormSubmit e-postası gitti mi
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now()
 );
