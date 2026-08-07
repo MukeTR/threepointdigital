@@ -105,6 +105,10 @@ const LEADS_TABLE = process.env.LEADS_TABLE || 'tpd_leads';
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'info@threepointdigital.com';
 // Yerel testte gerçek e-posta gönderilmesin diye uç adres değiştirilebilir.
 const FORMSUBMIT_URL = process.env.FORMSUBMIT_URL || 'https://formsubmit.co/ajax/' + CONTACT_EMAIL;
+// FormSubmit, Referer/Origin başlığı taşımayan istekleri reddediyor
+// ("FormSubmit will not work in pages browsed as HTML files"). İstek tarayıcıdan
+// değil sunucudan gittiği için bu başlıkları elle eklemek gerekiyor.
+const SITE_URL = (process.env.SITE_URL || 'https://www.threepointdigital.com').replace(/\/+$/, '');
 
 // --- Yönetim paneli ---------------------------------------------------------
 // Tek yönetici şifresi. Tercihen ADMIN_PASSWORD_HASH (şifrenin sha256 özeti)
@@ -416,7 +420,12 @@ async function sendLeadEmail(lead) {
   try {
     const response = await fetch(FORMSUBMIT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Referer: SITE_URL + '/',
+        Origin: SITE_URL,
+      },
       body: JSON.stringify({
         _subject: 'Ücretsiz pazaryeri analizi talebi — threepointdigital.com',
         _template: 'table',
