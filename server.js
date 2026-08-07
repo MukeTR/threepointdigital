@@ -18,6 +18,45 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
+/* --- .env dosyası -----------------------------------------------------------
+ * Ortam değişkenleri normalde hPanel > Node.js uygulaması ekranından girilir.
+ * O ekrana erişilemediğinde aynı değerler sunucunun yanındaki `.env` dosyasına
+ * yazılabilir; buradaki okuyucu onu process.env'e yükler. Bağımlılık yoktur.
+ *
+ * hPanel'de tanımlı bir değişken varsa o kazanır; .env yalnızca eksikleri
+ * tamamlar. Dosya git'e girmez (.gitignore) ve web'den istenirse 404 döner
+ * (isPrivatePath: nokta ile başlayan yollar kapalıdır).
+ */
+(function loadEnvFile() {
+  try {
+    const envPath = path.join(__dirname, '.env');
+    if (!fs.existsSync(envPath)) return;
+    let yuklenen = 0;
+    fs.readFileSync(envPath, 'utf8').split('\n').forEach((line) => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) return;
+      const eq = trimmed.indexOf('=');
+      if (eq === -1) return;
+      const key = trimmed.slice(0, eq).trim();
+      let value = trimmed.slice(eq + 1).trim();
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1);
+      }
+      // hPanel'den gelen değer varsa dokunma.
+      if (key && process.env[key] === undefined) {
+        process.env[key] = value;
+        yuklenen += 1;
+      }
+    });
+    if (yuklenen) console.log(`[env] .env dosyasından ${yuklenen} değişken yüklendi`);
+  } catch (error) {
+    console.error('[env] .env okunamadı:', error && error.message);
+  }
+})();
+
 // Dosya kökü iki yerleşimi de destekler: sayfalar `public/` altındaysa orayı,
 // değilse server.js ile aynı klasörü (Hostinger'daki public_html) kullanır.
 const ROOT = fs.existsSync(path.join(__dirname, 'public', 'index.html'))

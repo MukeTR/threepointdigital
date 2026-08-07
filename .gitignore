@@ -6,6 +6,11 @@
 node_modules/
 package-lock.json
 
+# Ortam değişkenleri — sunucuda elle oluşturulur, asla depoya girmez
+.env
+.env.*
+!.env.example
+
 # Cloudflare Wrangler
 .wrangler/
 api/.dev.vars
