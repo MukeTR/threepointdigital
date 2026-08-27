@@ -1084,7 +1084,6 @@ function renderBlogIndex(posts) {
     BOLUMLER: sections.join('\n\n'),
     LISTE: list,
     YAZI_SAYISI: String(posts.length),
-    ALT_BASLIK: htmlEscape(painted + ' başlıkta ' + posts.length + ' yazı'),
   });
 }
 

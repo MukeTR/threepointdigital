@@ -1488,6 +1488,16 @@ a:hover .card-link::after {
   align-items: end;
 }
 
+/* Yan notu olmayan sayfa başlıkları (ör. /blog) tek sütuna düşer;
+   satır uzunluğu okunur kalsın diye içerik genişliği sınırlanır. */
+.page-hero-grid.tek-sutun {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.page-hero-grid.tek-sutun > div {
+  max-width: 900px;
+}
+
 .page-hero h1 {
   font-size: clamp(40px, 5.4vw, 74px);
 }
