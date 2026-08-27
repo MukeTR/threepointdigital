@@ -1001,6 +1001,48 @@ const PRIVATE_DIRS = ['api', 'src', 'supabase', 'node_modules', '_yedek-mevcut-s
 const PRIVATE_FILES = ['server.js', 'package.json', 'package-lock.json', 'wrangler.jsonc', 'admin.html'];
 const PRIVATE_EXTS = new Set(['.md', '.jsonc', '.sql', '.ts', '.yml', '.yaml', '.log']);
 
+/* --- Eski site (Next.js dönemi) adresleri -----------------------------------
+ * Site yenilenirken bu adresler kaldırıldı ama Google onları hâlâ gösteriyor;
+ * yönlendirilmezlerse 404'e düşüyor ve biriken arama değeri kayboluyor.
+ * Kaynak: Search Console > Sayfalar raporu (Ağustos 2026).
+ */
+const LEGACY_REDIRECTS = new Map([
+  ['/iletisim', '/#iletisim'],
+  ['/analysis', '/#iletisim'],
+  ['/hizmetler', '/#hizmetler'],
+  ['/hizmetlerimiz', '/#hizmetler'],
+  ['/hizmetlerimiz/pazaryeri-magaza-yonetimi', '/#hizmetler'],
+  ['/hizmetlerimiz/pazaryeri-magaza-kurulumu', '/#hizmetler'],
+  ['/hizmetlerimiz/pazar-arastirmasi', '/#hizmetler'],
+  ['/hizmetlerimiz/fotograf-studyosu', '/#hizmetler'],
+  ['/hizmetlerimiz/fulfillment', '/#hizmetler'],
+  ['/hizmetlerimiz/marka-tescili', '/#hizmetler'],
+  ['/nasil-amazon-saticisi-olunur', '/amazon-tr-pazaryeri-yonetimi'],
+  ['/wayfair-saticisi-nasil-olunur', '/blog'],
+  ['/e-ticaret-ve-e-ihracat-nedir', '/blog'],
+  ['/category/e-ticaret', '/blog'],
+  ['/category/pazaryerleri', '/blog'],
+  ['/basari-hikayeleri', '/referanslar'],
+]);
+
+// Tek tek sayılmayan alt sayfalar için önek kuralı; tabloda birebir eşleşme
+// bulunamazsa bunlara bakılır.
+const LEGACY_PREFIXES = [
+  ['/hizmetlerimiz/', '/#hizmetler'],
+  ['/category/', '/blog'],
+];
+
+function legacyTarget(urlPath) {
+  const key = (urlPath.length > 1 && urlPath.endsWith('/') ? urlPath.slice(0, -1) : urlPath).toLowerCase();
+  const exact = LEGACY_REDIRECTS.get(key);
+  if (exact) return exact;
+  for (let i = 0; i < LEGACY_PREFIXES.length; i += 1) {
+    if (key.startsWith(LEGACY_PREFIXES[i][0])) return LEGACY_PREFIXES[i][1];
+  }
+  return null;
+}
+
+
 function isPrivatePath(urlPath) {
   const parts = urlPath.split('/').filter(Boolean);
   if (parts.some((part) => part.startsWith('.'))) return true;
@@ -1070,6 +1112,10 @@ const server = http.createServer((req, res) => {
   if (CANONICAL_HOST && host && host !== CANONICAL_HOST && host !== 'localhost' && host !== '127.0.0.1') {
     return redirect(res, 'https://' + CANONICAL_HOST + urlPath + query);
   }
+
+  // --- Eski site adresleri (301) ---
+  const legacy = legacyTarget(urlPath);
+  if (legacy) return redirect(res, legacy);
 
   // --- /index.html -> / ---
   if (urlPath === '/index.html') return redirect(res, '/' + query);
