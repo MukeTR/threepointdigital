@@ -224,6 +224,21 @@
       .pill.kazanildi { background: #dcefe6; color: var(--green); }
       .pill.kayip { background: #f1e3e2; color: var(--danger); }
 
+      /* Blog editörü */
+      .post-form { display: grid; gap: 14px; }
+      .post-form label { display: grid; gap: 6px; font-size: 13.5px; color: var(--muted); }
+      .post-form label > span { font-weight: 600; color: var(--ink); }
+      .post-form .ikili { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+      .post-form .ikili > label { align-content: start; }
+      /* Gövde HTML'i için daha geniş çekmece. */
+      #post-drawer { width: min(760px, 100%); }
+      .post-form textarea { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; line-height: 1.6; }
+      .post-form .hint { font-size: 12.5px; color: var(--muted); }
+      .post-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 4px; }
+      .post-actions .spacer { margin-left: auto; }
+      .pill.yayinda { background: #dcefe6; color: var(--green); }
+      .pill.taslak { background: #eee9e2; color: var(--muted); }
+      @media (max-width: 620px) { .post-form .ikili { grid-template-columns: 1fr; } }
       .empty {
         background: var(--white); border: 1px dashed var(--line);
         border-radius: 16px; padding: 44px 20px; text-align: center; color: var(--muted);
@@ -347,6 +362,9 @@
           <button class="tab" role="tab" id="tab-kayitlar" aria-selected="false" data-view="kayitlar">
             Kârlılık Merkezi kayıtları
           </button>
+          <button class="tab" role="tab" id="tab-yazilar" aria-selected="false" data-view="yazilar">
+            Blog yazıları
+          </button>
         </div>
 
         <!-- Talepler -->
@@ -382,6 +400,22 @@
           </div>
           <div class="list" id="reg-list"></div>
         </section>
+
+        <!-- Blog yazıları -->
+        <section id="view-yazilar" hidden>
+          <div class="filters">
+            <input type="search" id="post-search" placeholder="Başlık veya adres…" />
+            <select id="post-status">
+              <option value="">Tüm yazılar</option>
+              <option value="yayinda">Yayında</option>
+              <option value="taslak">Taslak</option>
+            </select>
+            <span class="spacer"></span>
+            <button class="button ghost small" type="button" id="post-import">Dosyadaki yazıları aktar</button>
+            <button class="button orange small" type="button" id="post-new">Yeni yazı</button>
+          </div>
+          <div class="list" id="post-list"></div>
+        </section>
       </main>
     </div>
 
@@ -393,6 +427,62 @@
         <button class="drawer-close" type="button" id="drawer-close" aria-label="Kapat">&times;</button>
       </div>
       <div class="drawer-body" id="drawer-body"></div>
+    </aside>
+
+    <!-- ================= Yazı düzenleme çekmecesi ================= -->
+    <aside class="drawer" id="post-drawer" aria-hidden="true" aria-label="Yazı düzenleme">
+      <div class="drawer-head">
+        <h2 id="post-drawer-title">Yazı</h2>
+        <button class="drawer-close" type="button" id="post-drawer-close" aria-label="Kapat">&times;</button>
+      </div>
+      <div class="drawer-body">
+        <div class="post-form">
+          <label><span>Başlık</span>
+            <input type="text" id="post-headline" maxlength="200" placeholder="Trendyol'da Ürün Listeleme: Satışın İlk Adımı" />
+          </label>
+          <label><span>Adres (slug)</span>
+            <input type="text" id="post-slug" maxlength="120" placeholder="trendyolda-urun-listeleme" />
+            <span class="hint">Yayın adresi: /blog/<span id="post-slug-preview">…</span> — yayındaki bir yazının adresini değiştirmek arama sonuçlarındaki bağlantıyı kırar.</span>
+          </label>
+          <label><span>Özet (meta description)</span>
+            <textarea id="post-description" rows="3" maxlength="400" placeholder="Arama sonuçlarında ve kartlarda görünen 1-2 cümlelik özet."></textarea>
+          </label>
+          <div class="ikili">
+            <label><span>Kategori</span>
+              <select id="post-category">
+                <option>Strateji</option><option>Ürün</option><option>Reklam</option>
+                <option>Kampanya</option><option>Kârlılık</option><option>Operasyon</option>
+              </select>
+            </label>
+            <label><span>Durum</span>
+              <select id="post-status-field">
+                <option value="taslak">Taslak</option>
+                <option value="yayinda">Yayında</option>
+              </select>
+            </label>
+          </div>
+          <div class="ikili">
+            <label><span>Sıra</span>
+              <input type="number" id="post-order" min="1" max="999" />
+              <span class="hint">Dizin sayfasındaki sıralama; küçük olan üstte.</span>
+            </label>
+            <label><span>SEO başlığı</span>
+              <input type="text" id="post-title" maxlength="250" placeholder="Boş bırakılırsa başlıktan üretilir" />
+            </label>
+          </div>
+          <label><span>Yazı gövdesi (HTML)</span>
+            <textarea id="post-body" rows="18" placeholder="&lt;p&gt;Giriş paragrafı…&lt;/p&gt;&#10;&lt;h2&gt;Ara başlık&lt;/h2&gt;&#10;&lt;p&gt;…&lt;/p&gt;"></textarea>
+            <span class="hint">&lt;p&gt;, &lt;h2&gt;, &lt;h3&gt;, &lt;ul&gt;/&lt;li&gt;, &lt;strong&gt;, &lt;a&gt; kullanın. h2 başlıkları "Bu yazıda" listesini otomatik oluşturur. Script ve benzeri etiketler kaydedilirken temizlenir.</span>
+          </label>
+          <div class="post-actions">
+            <button class="button orange small" type="button" id="post-save">Kaydet</button>
+            <a class="button ghost small" id="post-preview" href="#" target="_blank" rel="noopener">Önizle</a>
+            <span class="spacer"></span>
+            <button class="button ghost small" type="button" id="post-delete">Sil</button>
+          </div>
+          <p class="status-line" role="status" aria-live="polite" id="post-status-line"></p>
+        </div>
+      </div>
     </aside>
 
     <script>
@@ -499,7 +589,9 @@
             });
             el("view-talepler").hidden = aktifGorunum !== "talepler";
             el("view-kayitlar").hidden = aktifGorunum !== "kayitlar";
+            el("view-yazilar").hidden = aktifGorunum !== "yazilar";
             if (aktifGorunum === "kayitlar") kayitlariGetir();
+            if (aktifGorunum === "yazilar") yazilariGetir();
           });
         });
 
@@ -711,6 +803,204 @@
 
         el("drawer-close").addEventListener("click", detayKapat);
         el("drawer-backdrop").addEventListener("click", detayKapat);
+
+        /* ---------------- Blog yazıları ---------------- */
+
+        var yazilar = [];
+        var seciliYazi = null;
+        var silmeOnayi = false;
+
+        function yaziSlug(deger) {
+          var harita = { "ç": "c", "ğ": "g", "ı": "i", "ö": "o", "ş": "s", "ü": "u",
+                         "â": "a", "î": "i", "û": "u", "Ç": "c", "Ğ": "g", "İ": "i",
+                         "Ö": "o", "Ş": "s", "Ü": "u" };
+          return String(deger || "")
+            .replace(/[çğıöşüâîûÇĞİÖŞÜ]/g, function (c) { return harita[c] || c; })
+            .toLowerCase()
+            .normalize("NFD").replace(/[̀-ͯ]/g, "")
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+        }
+
+        function yazilariGetir() {
+          var list = el("post-list");
+          list.innerHTML = '<div class="empty">Yükleniyor…</div>';
+          api("/admin/api/yazilar")
+            .then(function (data) {
+              yazilar = data.yazilar || [];
+              yazilariCiz();
+            })
+            .catch(function (error) {
+              list.innerHTML = '<div class="empty">' + esc(error.message) + "</div>";
+            });
+        }
+
+        function yazilariCiz() {
+          var list = el("post-list");
+          var q = el("post-search").value.trim().toLowerCase();
+          var durum = el("post-status").value;
+          var gosterilecek = yazilar.filter(function (y) {
+            if (durum && y.status !== durum) return false;
+            if (!q) return true;
+            return (y.headline + " " + y.slug).toLowerCase().indexOf(q) !== -1;
+          });
+          if (!gosterilecek.length) {
+            list.innerHTML = '<div class="empty">' +
+              (yazilar.length ? "Bu filtreye uyan yazı yok."
+                : "Henüz yazı yok. &ldquo;Dosyadaki yazıları aktar&rdquo; ile blog klasöründeki yazıları buraya taşıyabilirsiniz.") +
+              "</div>";
+            return;
+          }
+          list.innerHTML = gosterilecek.map(yaziSatir).join("");
+        }
+
+        function yaziSatir(y) {
+          return (
+            '<article class="row" data-id="' + esc(y.id) + '">' +
+              "<div>" +
+                "<h3>" + esc(y.headline) + "</h3>" +
+                '<div class="meta">/blog/' + esc(y.slug) + " · " + esc(y.category) + "</div>" +
+              "</div>" +
+              '<div class="right">' +
+                '<span class="pill ' + esc(y.status) + '">' +
+                  (y.status === "yayinda" ? "Yayında" : "Taslak") + "</span>" +
+                '<span class="meta">Sıra ' + esc(String(y.sort_order)) + "</span>" +
+              "</div>" +
+              '<div class="excerpt">' + esc(y.description || "") + "</div>" +
+            "</article>"
+          );
+        }
+
+        function slugOnizleGuncelle() {
+          var slug = yaziSlug(el("post-slug").value || el("post-headline").value);
+          el("post-slug-preview").textContent = slug || "…";
+          var onizle = el("post-preview");
+          if (slug) { onizle.href = "/blog/" + slug; onizle.removeAttribute("aria-disabled"); }
+          else { onizle.href = "#"; onizle.setAttribute("aria-disabled", "true"); }
+        }
+
+        function yaziAc(y) {
+          seciliYazi = y || null;
+          silmeOnayi = false;
+          el("post-drawer-title").textContent = y ? "Yazıyı düzenle" : "Yeni yazı";
+          el("post-headline").value = y ? y.headline || "" : "";
+          el("post-slug").value = y ? y.slug || "" : "";
+          el("post-description").value = y ? y.description || "" : "";
+          el("post-category").value = y ? y.category || "Strateji" : "Strateji";
+          el("post-status-field").value = y ? y.status || "taslak" : "taslak";
+          el("post-order").value = y ? y.sort_order : 999;
+          el("post-title").value = y ? y.title || "" : "";
+          el("post-body").value = y ? y.body_html || "" : "";
+          el("post-delete").textContent = "Sil";
+          el("post-delete").hidden = !y;
+          el("post-status-line").textContent = "";
+          slugOnizleGuncelle();
+          el("post-drawer").classList.add("open");
+          el("post-drawer").setAttribute("aria-hidden", "false");
+          el("drawer-backdrop").classList.add("open");
+        }
+
+        function yaziKapat() {
+          el("post-drawer").classList.remove("open");
+          el("post-drawer").setAttribute("aria-hidden", "true");
+          if (!el("drawer").classList.contains("open")) {
+            el("drawer-backdrop").classList.remove("open");
+          }
+          seciliYazi = null;
+          silmeOnayi = false;
+        }
+
+        function yaziKaydet() {
+          var durumSatiri = el("post-status-line");
+          var gonder = {
+            headline: el("post-headline").value.trim(),
+            slug: el("post-slug").value.trim() || el("post-headline").value.trim(),
+            description: el("post-description").value.trim(),
+            category: el("post-category").value,
+            status: el("post-status-field").value,
+            sort_order: Number(el("post-order").value) || 999,
+            title: el("post-title").value.trim(),
+            body_html: el("post-body").value,
+          };
+          if (seciliYazi) {
+            gonder.id = seciliYazi.id;
+            if (seciliYazi.published_at) gonder.published_at = seciliYazi.published_at;
+          }
+          if (!gonder.headline) { durumSatiri.textContent = "Başlık gerekli."; return; }
+          if (!gonder.body_html.trim()) { durumSatiri.textContent = "Yazı gövdesi boş olamaz."; return; }
+
+          durumSatiri.textContent = "Kaydediliyor…";
+          el("post-save").disabled = true;
+          api("/admin/api/yazi", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(gonder),
+          })
+            .then(function () {
+              durumSatiri.textContent = "Kaydedildi.";
+              yazilariGetir();
+              setTimeout(yaziKapat, 500);
+            })
+            .catch(function (error) { durumSatiri.textContent = error.message; })
+            .then(function () { el("post-save").disabled = false; });
+        }
+
+        function yaziSil() {
+          if (!seciliYazi) return;
+          var dugme = el("post-delete");
+          if (!silmeOnayi) {
+            silmeOnayi = true;
+            dugme.textContent = "Emin misiniz? Tekrar tıklayın";
+            setTimeout(function () {
+              if (silmeOnayi) { silmeOnayi = false; dugme.textContent = "Sil"; }
+            }, 4000);
+            return;
+          }
+          el("post-status-line").textContent = "Siliniyor…";
+          api("/admin/api/yazi-sil", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: seciliYazi.id }),
+          })
+            .then(function () { yazilariGetir(); yaziKapat(); })
+            .catch(function (error) { el("post-status-line").textContent = error.message; });
+        }
+
+        function yazilariAktar() {
+          var dugme = el("post-import");
+          dugme.disabled = true;
+          var eskiMetin = dugme.textContent;
+          dugme.textContent = "Aktarılıyor…";
+          api("/admin/api/yazi-aktar", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
+            .then(function (data) {
+              el("post-list").innerHTML = '<div class="empty">' +
+                data.eklenen + " yazı aktarıldı" +
+                (data.atlanan ? ", " + data.atlanan + " tanesi zaten kayıtlıydı" : "") + ".</div>";
+              yazilariGetir();
+            })
+            .catch(function (error) {
+              el("post-list").innerHTML = '<div class="empty">' + esc(error.message) + "</div>";
+            })
+            .then(function () { dugme.disabled = false; dugme.textContent = eskiMetin; });
+        }
+
+        el("post-list").addEventListener("click", function (event) {
+          var row = event.target.closest(".row");
+          if (!row) return;
+          var y = yazilar.find(function (x) { return x.id === row.getAttribute("data-id"); });
+          if (y) yaziAc(y);
+        });
+        el("post-new").addEventListener("click", function () { yaziAc(null); });
+        el("post-import").addEventListener("click", yazilariAktar);
+        el("post-save").addEventListener("click", yaziKaydet);
+        el("post-delete").addEventListener("click", yaziSil);
+        el("post-drawer-close").addEventListener("click", yaziKapat);
+        el("drawer-backdrop").addEventListener("click", yaziKapat);
+        el("post-search").addEventListener("input", gecikmeliArama(yazilariCiz));
+        el("post-status").addEventListener("change", yazilariCiz);
+        el("post-headline").addEventListener("input", slugOnizleGuncelle);
+        el("post-slug").addEventListener("input", slugOnizleGuncelle);
+
         document.addEventListener("keydown", function (event) {
           if (event.key === "Escape") detayKapat();
         });

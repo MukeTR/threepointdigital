@@ -17,6 +17,8 @@ gördüğünüz yönlendirme, önbellek ve başlık davranışı canlıdakiyle b
 | Yol | Açıklama |
 |---|---|
 | `*.html` | 9 sayfa + `404.html`. Header/footer her sayfada gömülüdür, derleme adımı yoktur. |
+| `blog.html`, `blog/*.html` | Blog dizini ve 30 yazı. **Statik yedektir**: yayın içeriği Supabase'de durur (bkz. aşağısı), bu dosyalara yalnızca veritabanına erişilemediğinde düşülür. |
+| `blog/_sablon*.html` | Sunucunun blog sayfalarını üretirken doldurduğu iskeletler. Web'e servis edilmez. |
 | `assets/site.css` | Tüm sitenin stil sistemi |
 | `assets/site.js` | Mobil menü, ana sayfa hesaplayıcısı, iletişim formu |
 | `assets/profit-studio.css` / `.js` | Kârlılık Merkezi uygulaması (`/e-ticaret-karlilik-hesaplama`) |
@@ -31,6 +33,32 @@ gördüğünüz yönlendirme, önbellek ve başlık davranışı canlıdakiyle b
 - **`TESLIMAT.md`** — teslimat notu: yapılan değişiklikler, test sonuçları, production'a geçiş
   adımları, doğrulanması gereken bilgiler ve geri dönüş planı. **Önce bunu okuyun.**
 - **`api/README.md`** — kayıt API'sinin kurulumu ve deploy adımları.
+
+## Blog yönetimi
+
+Yazılar `/admin` panelindeki **Blog yazıları** sekmesinden yönetilir; içerik
+Supabase'deki `tpd_blog_posts` tablosunda durur. Hostinger'da uygulama dizini
+dağıtımlarda değiştiği için dosyaya yazmak kalıcı olmazdı.
+
+İlk kurulum:
+
+1. `supabase/schema.sql` dosyasını Supabase SQL Editor'de çalıştırın (dosya
+   yeniden çalıştırılabilir; mevcut tablolara dokunmaz).
+2. Panelde **Blog yazıları > Dosyadaki yazıları aktar** düğmesine basın.
+   `blog/*.html` içindeki 30 yazı tabloya taşınır; zaten kayıtlı slug'lar atlanır.
+
+Sonrasında:
+
+- Taslağa çekilen ya da silinen yazı `404` döner — statik dosya onu yayında tutmaz.
+- Panelde oturum açıkken taslaklar `/blog/<slug>` adresinden önizlenebilir;
+  bu yanıt `X-Robots-Tag: noindex` taşır ve önbelleğe alınmaz.
+- Gövdedeki `h2` başlıkları "Bu yazıda" listesini otomatik üretir.
+- `script`, `iframe`, `on*` gibi çalıştırılabilir içerik kaydedilirken temizlenir.
+- Yayın listesi 60 saniye önbelleklenir; panelden yapılan her değişiklik
+  önbelleği anında düşürür.
+
+Slug'lar arama sonuçlarında kayıtlıdır; yayındaki bir yazının adresini
+değiştirmek o bağlantıyı kırar.
 
 ## Deploy
 

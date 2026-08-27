@@ -103,3 +103,65 @@ create or replace view public.tpd_talepler as
     source_page as geldigi_sayfa
   from public.tpd_leads
   order by created_at desc;
+
+
+-- ===========================================================================
+-- Blog yazıları (/admin > Blog sekmesinden yönetilir)
+--
+-- Yazılar önce statik dosya olarak (blog/*.html) yayına alınmıştı. Panelden
+-- yönetilebilmesi için içerik buraya taşındı: Hostinger'da uygulama dizini
+-- dağıtımlarda değiştiği için dosyaya yazmak kalıcı değil.
+--
+-- Sunucu önce bu tabloya bakar; kayıt yoksa (ya da veritabanına erişilemezse)
+-- blog/*.html dosyasına düşer. Böylece veritabanı çökse bile yayındaki
+-- yazılar erişilebilir kalır.
+-- ===========================================================================
+
+create table if not exists public.tpd_blog_posts (
+  id            uuid primary key,
+  slug          text not null unique,             -- /blog/<slug>
+  title         text not null,                    -- <title> etiketi
+  headline      text not null,                    -- sayfadaki h1
+  description   text not null,                    -- meta description + kart özeti
+  category      text not null default 'Strateji', -- Strateji|Ürün|Reklam|Kampanya|Kârlılık|Operasyon
+  body_html     text not null,                    -- yazı gövdesi (p, h2, ul...)
+  status        text not null default 'taslak',   -- taslak | yayinda
+  sort_order    integer not null default 999,     -- dizin sayfasındaki sıra
+  published_at  timestamptz,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+create index if not exists tpd_blog_posts_slug_idx   on public.tpd_blog_posts (slug);
+create index if not exists tpd_blog_posts_status_idx on public.tpd_blog_posts (status);
+create index if not exists tpd_blog_posts_order_idx  on public.tpd_blog_posts (sort_order, published_at desc);
+
+-- Yalnızca sunucu (servis anahtarı) erişir; tarayıcıya tamamen kapalı.
+alter table public.tpd_blog_posts enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'tpd_blog_posts_status_chk') then
+    alter table public.tpd_blog_posts
+      add constraint tpd_blog_posts_status_chk
+      check (status in ('taslak', 'yayinda'));
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'tpd_blog_posts_category_chk') then
+    alter table public.tpd_blog_posts
+      add constraint tpd_blog_posts_category_chk
+      check (category in ('Strateji', 'Ürün', 'Reklam', 'Kampanya', 'Kârlılık', 'Operasyon'));
+  end if;
+end $$;
+
+-- Supabase Table Editor'de okunaklı liste.
+create or replace view public.tpd_yazilar as
+  select
+    sort_order as sira,
+    slug,
+    headline   as baslik,
+    category   as kategori,
+    case status when 'yayinda' then 'Yayında' else 'Taslak' end as durum,
+    published_at as yayin_tarihi,
+    updated_at   as son_guncelleme
+  from public.tpd_blog_posts
+  order by sort_order, published_at desc;

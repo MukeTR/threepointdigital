@@ -106,6 +106,10 @@ const hasSupabase = () => Boolean(SUPABASE_URL && SUPABASE_SERVICE_KEY);
 // Tek kanal kaldığı için yazma başarısız olursa talep kaybolmasın diye
 // LEAD_FALLBACK_LOG dosyasına da bir satır düşülür (aşağıya bakın).
 const LEADS_TABLE = process.env.LEADS_TABLE || 'tpd_leads';
+
+// Şablonlara ve JSON-LD'ye yazılan kanonik adres. CANONICAL_HOST tanımlıysa
+// ondan türer; değilse sitenin bilinen www'lu adresi kullanılır.
+const SITE_ORIGIN = 'https://' + (process.env.CANONICAL_HOST || 'www.threepointdigital.com');
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'info@threepointdigital.com';
 
 // --- Yönetim paneli ---------------------------------------------------------
@@ -872,6 +876,493 @@ async function adminExport(req, res, url) {
   }
 }
 
+/* ===========================================================================
+   Blog
+   ---------------------------------------------------------------------------
+   İçerik Supabase'de (tpd_blog_posts), sayfa iskeleti blog/_sablon.html ve
+   blog/_sablon-index.html dosyalarında durur. Sunucu şablonu okuyup doldurur.
+
+   Veritabanında yayında yazı yoksa ya da veritabanına erişilemiyorsa istek
+   blog/*.html statik dosyalarına düşer; böylece panel kurulmadan önce de,
+   veritabanı çökse de yayındaki yazılar erişilebilir kalır.
+   =========================================================================== */
+
+const BLOG_TABLE = process.env.BLOG_TABLE || 'tpd_blog_posts';
+const BLOG_CATEGORIES = ['Strateji', 'Ürün', 'Reklam', 'Kampanya', 'Kârlılık', 'Operasyon'];
+// kategori -> [rozet yazısı, rozet renk sınıfı]
+const BLOG_BADGES = {
+  'Strateji': ['ST', ''],
+  'Ürün': ['ÜR', 'black'],
+  'Reklam': ['RK', 'purple'],
+  'Kampanya': ['KM', ''],
+  'Kârlılık': ['KÂ', 'black'],
+  'Operasyon': ['OP', 'purple'],
+};
+
+function htmlEscape(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');   // öznitelikler çift tırnaklı; ' kaçırılmaz
+}
+
+// JSON-LD string değerleri: tırnak ve satır sonu kaçırılır.
+function jsonEscape(value) {
+  return JSON.stringify(String(value == null ? '' : value)).slice(1, -1);
+}
+
+function blogSlugify(value) {
+  const tr = { ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u', â: 'a', î: 'i', û: 'u' };
+  return String(value || '')
+    .replace(/<[^>]+>/g, '')
+    .toLowerCase()
+    .replace(/[çğıöşüâîû]/g, (c) => tr[c] || c)
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+/* Panelden gelen gövde yönetici tarafından yazılır ama yine de çalıştırılabilir
+ * içerik taşımamalı: hesap ele geçirilse bile sayfaya script gömülemesin. */
+function sanitizeBlogHtml(raw) {
+  return String(raw || '')
+    .replace(/<\s*(script|iframe|object|embed|form|link|meta|style)\b[\s\S]*?<\s*\/\s*\1\s*>/gi, '')
+    .replace(/<\s*(script|iframe|object|embed|form|link|meta|style)\b[^>]*>/gi, '')
+    .replace(/\son[a-z]+\s*=\s*"[^"]*"/gi, '')
+    .replace(/\son[a-z]+\s*=\s*'[^']*'/gi, '')
+    .replace(/\son[a-z]+\s*=\s*[^\s>]+/gi, '')
+    .replace(/javascript:/gi, '');
+}
+
+// --- şablonlar (ilk istekte okunur, sonra bellekte tutulur) -----------------
+let blogTemplateCache = null;
+function blogTemplates() {
+  if (blogTemplateCache) return blogTemplateCache;
+  try {
+    blogTemplateCache = {
+      post: fs.readFileSync(path.join(ROOT, 'blog', '_sablon.html'), 'utf8'),
+      index: fs.readFileSync(path.join(ROOT, 'blog', '_sablon-index.html'), 'utf8'),
+    };
+  } catch (e) {
+    console.error('[blog] şablon okunamadı:', e.message);
+    blogTemplateCache = null;
+  }
+  return blogTemplateCache;
+}
+
+function fillTemplate(tpl, values) {
+  return tpl.replace(/\{\{([A-Z_]+)\}\}/g, (m, key) =>
+    Object.prototype.hasOwnProperty.call(values, key) ? values[key] : m);
+}
+
+function blogBadge(category) {
+  return BLOG_BADGES[category] || BLOG_BADGES.Strateji;
+}
+
+function blogShortTitle(headline) {
+  return String(headline || '').split(':')[0].trim();
+}
+
+function blogDate(value) {
+  if (!value) return new Date().toISOString().slice(0, 10);
+  return String(value).slice(0, 10);
+}
+
+/* Gövdedeki h2'lere id verir ve "Bu yazıda" listesini üretir. */
+function blogBodyWithToc(bodyHtml) {
+  const headings = [];
+  const body = String(bodyHtml || '').replace(
+    /<h2(?:\s[^>]*)?>([\s\S]*?)<\/h2>/gi,
+    (m, inner) => {
+      const text = inner.replace(/<[^>]+>/g, '').trim();
+      const id = blogSlugify(text) || 'bolum-' + (headings.length + 1);
+      headings.push({ id, text });
+      return '<h2 id="' + id + '">' + inner + '</h2>';
+    }
+  );
+
+  let toc = '';
+  if (headings.length) {
+    toc = '          <aside class="content-aside">\n' +
+      '            <p class="eyebrow">Bu yazıda</p>\n' +
+      '            <nav aria-label="Yazı içeriği">\n' +
+      headings.map((h) => '              <a href="#' + h.id + '">' + htmlEscape(h.text) + '</a>').join('\n') +
+      '\n            </nav>\n          </aside>\n\n';
+  }
+  return { body, toc };
+}
+
+function renderBlogPost(post, prev, next) {
+  const tpl = blogTemplates();
+  if (!tpl) return null;
+
+  const url = SITE_ORIGIN + '/blog/' + post.slug;
+  const headline = String(post.headline || '');
+  const badge = blogBadge(post.category);
+  const parts = blogBodyWithToc(sanitizeBlogHtml(post.body_html));
+
+  const card = (other, yon, etiket) => {
+    if (!other) return '';
+    const b = blogBadge(other.category);
+    return '            <a class="card" href="/blog/' + other.slug + '">\n' +
+      '              <span class="' + ('platform-badge ' + b[1]).trim() + '">' + yon + '</span>\n' +
+      '              <h3>' + htmlEscape(other.headline) + '</h3>\n' +
+      '              <span class="card-link">' + etiket + '</span>\n' +
+      '            </a>';
+  };
+  const cards = [card(prev, '←', 'Önceki yazı'), card(next, '→', 'Sonraki yazı')].filter(Boolean);
+  const gezinme = cards.length
+    ? '\n      <section class="section" aria-labelledby="devam-baslik">\n' +
+      '        <div class="wrap">\n' +
+      '          <div class="section-head">\n' +
+      '            <p class="eyebrow">Seriye devam</p>\n' +
+      '            <h2 id="devam-baslik">Sıradaki yazılar</h2>\n' +
+      '          </div>\n' +
+      '          <div class="cards-2">\n' + cards.join('\n') + '\n          </div>\n' +
+      '        </div>\n      </section>\n'
+    : '';
+
+  return fillTemplate(tpl.post, {
+    URL: url,
+    TITLE: htmlEscape(post.title),
+    HEADLINE: htmlEscape(headline),
+    HEADLINE_KISA: htmlEscape(blogShortTitle(headline)),
+    DESCRIPTION: htmlEscape(post.description),
+    KATEGORI: htmlEscape(post.category),
+    // JSON-LD içinde HTML varlıkları çözülmez; oraya JSON kaçırması gider.
+    TITLE_JSON: jsonEscape(post.title),
+    HEADLINE_JSON: jsonEscape(headline),
+    HEADLINE_KISA_JSON: jsonEscape(blogShortTitle(headline)),
+    DESCRIPTION_JSON: jsonEscape(post.description),
+    KATEGORI_JSON: jsonEscape(post.category),
+    ROZET: htmlEscape(badge[0]),
+    ROZET_SINIF: ('platform-badge ' + badge[1]).trim(),
+    YAYIN_TARIHI: blogDate(post.published_at || post.created_at),
+    GUNCELLEME_TARIHI: blogDate(post.updated_at || post.published_at || post.created_at),
+    TOC: parts.toc,
+    // gövde veritabanında girintisiz durur; şablonun içinde hizalanır
+    ICERIK: parts.body.split('\n').map((r) => (r.trim() ? '            ' + r.trim() : r)).join('\n'),
+    GEZINME: gezinme,
+  });
+}
+
+function renderBlogIndex(posts) {
+  const tpl = blogTemplates();
+  if (!tpl) return null;
+
+  const sections = [];
+  let painted = 0;
+  BLOG_CATEGORIES.forEach((cat) => {
+    const group = posts.filter((p) => p.category === cat);
+    if (!group.length) return;
+    const id = blogSlugify(cat);
+    const cards = group.map((p) => {
+      const b = blogBadge(p.category);
+      return '            <a class="card" href="/blog/' + p.slug + '">\n' +
+        '              <span class="' + ('platform-badge ' + b[1]).trim() + '">' + htmlEscape(b[0]) + '</span>\n' +
+        '              <h3>' + htmlEscape(p.headline) + '</h3>\n' +
+        '              <p>' + htmlEscape(p.description) + '</p>\n' +
+        '              <span class="card-link">Yazıyı oku</span>\n' +
+        '            </a>';
+    }).join('\n');
+    sections.push('      <section class="section' + (painted % 2 === 0 ? ' white' : '') +
+      '" aria-labelledby="' + id + '-baslik">\n' +
+      '        <div class="wrap">\n' +
+      '          <div class="section-head">\n' +
+      '            <p class="eyebrow">' + group.length + ' yazı</p>\n' +
+      '            <h2 id="' + id + '-baslik">' + htmlEscape(cat) + '</h2>\n' +
+      '          </div>\n' +
+      '          <div class="cards-3">\n' + cards + '\n          </div>\n' +
+      '        </div>\n      </section>');
+    painted += 1;
+  });
+
+  const list = posts.map((p, i) =>
+    '              { "@type": "ListItem", "position": ' + (i + 1) +
+    ', "url": "' + SITE_ORIGIN + '/blog/' + jsonEscape(p.slug) + '" }').join(',\n');
+
+  return fillTemplate(tpl.index, {
+    BOLUMLER: sections.join('\n\n'),
+    LISTE: list,
+    YAZI_SAYISI: String(posts.length),
+    ALT_BASLIK: htmlEscape(painted + ' başlıkta ' + posts.length + ' yazı'),
+  });
+}
+
+/* Tüm yazılar (taslaklar dahil), sıralı.
+ *
+ * Otorite kuralı: veritabanında kayıt varsa yayın durumu oradan belirlenir —
+ * taslağa çekilen ya da silinen yazı 404 döner. blog/*.html dosyalarına
+ * yalnızca veritabanına erişilemediğinde veya tablo henüz boşken (yazılar
+ * panelden içe aktarılmadan önce) düşülür.
+ *
+ * Hata durumunda null döner; boş dizi ile karıştırılmamalıdır.
+ */
+const BLOG_CACHE_MS = 60 * 1000;
+let blogCache = { at: 0, rows: null };
+function blogCacheClear() { blogCache = { at: 0, rows: null }; }
+
+async function blogAll() {
+  if (blogCache.rows && Date.now() - blogCache.at < BLOG_CACHE_MS) return blogCache.rows;
+  if (!hasSupabase()) return null;
+  try {
+    const r = await supabase('/rest/v1/' + BLOG_TABLE +
+      '?select=slug,title,headline,description,category,body_html,status,published_at,created_at,updated_at' +
+      '&order=sort_order.asc,published_at.desc&limit=500');
+    if (!r.ok) {
+      console.error('[blog] liste hatası', r.status, (await r.text()).slice(0, 200));
+      return null;
+    }
+    const rows = await r.json();
+    blogCache = { at: Date.now(), rows };
+    return rows;
+  } catch (error) {
+    console.error('[blog] liste hatası', error && error.message);
+    return null;
+  }
+}
+
+async function serveBlogIndex(res) {
+  const all = await blogAll();
+  if (all && all.length) {
+    const posts = all.filter((p) => p.status === 'yayinda');
+    const html = renderBlogIndex(posts);
+    if (html) return send(res, 200, MIME['.html'], html, { 'Cache-Control': cacheControl('.html') });
+  }
+  return serveFile(res, path.join(ROOT, 'blog.html'));   // statik yedek
+}
+
+async function serveBlogPost(res, slug, onizleyebilir) {
+  const all = await blogAll();
+
+  if (all && all.length) {
+    const posts = all.filter((p) => p.status === 'yayinda');
+    const i = posts.findIndex((p) => p.slug === slug);
+
+    if (i === -1) {
+      // Panelde oturum açıksa taslak da gösterilir (Önizle bağlantısı).
+      // Bu yanıt aramaya kapalıdır ve önbelleğe alınmaz.
+      const taslak = onizleyebilir ? all.find((p) => p.slug === slug) : null;
+      if (taslak) {
+        const onizleme = renderBlogPost(taslak, null, null);
+        if (onizleme) {
+          return send(res, 200, MIME['.html'], onizleme, {
+            'Cache-Control': 'no-store',
+            'X-Robots-Tag': 'noindex, nofollow',
+          });
+        }
+      }
+      return notFound(res);   // taslak veya silinmiş: statik yedeğe düşme
+    }
+
+    const html = renderBlogPost(posts[i], posts[i - 1] || null, posts[i + 1] || null);
+    if (html) return send(res, 200, MIME['.html'], html, { 'Cache-Control': cacheControl('.html') });
+  }
+
+  const staticPath = path.join(ROOT, 'blog', slug + '.html');
+  return fs.stat(staticPath, (err, stat) => {
+    if (!err && stat.isFile()) return serveFile(res, staticPath);
+    notFound(res);
+  });
+}
+
+/* --- Panel uçları --------------------------------------------------------- */
+
+async function adminBlogList(req, res) {
+  if (!hasSupabase()) return supabaseUnavailable(res);
+  try {
+    const r = await supabase('/rest/v1/' + BLOG_TABLE +
+      '?select=id,slug,title,headline,description,category,body_html,status,sort_order,published_at,updated_at' +
+      '&order=sort_order.asc,published_at.desc&limit=500');
+    if (!r.ok) {
+      console.error('[admin] yazı listesi hatası', r.status, (await r.text()).slice(0, 300));
+      return jsonResponse(res, 500, { error: 'Yazılar getirilemedi.' });
+    }
+    return jsonResponse(res, 200, { yazilar: await r.json() });
+  } catch (error) {
+    console.error('[admin] yazı listesi hatası', error && error.message);
+    return jsonResponse(res, 500, { error: 'Yazılar getirilemedi.' });
+  }
+}
+
+async function adminBlogSave(req, res) {
+  if (!hasSupabase()) return supabaseUnavailable(res);
+  if (!sameOrigin(req)) return jsonResponse(res, 403, { error: 'Geçersiz istek kaynağı.' });
+
+  let body;
+  try {
+    body = await readBody(req);
+  } catch (e) {
+    return jsonResponse(res, e.message === 'too-large' ? 413 : 400, { error: 'Yazı kaydedilemedi.' });
+  }
+
+  const slug = blogSlugify(body.slug || body.headline);
+  const headline = clean(body.headline, 200);
+  const bodyHtml = sanitizeBlogHtml(body.body_html || '');
+  const category = BLOG_CATEGORIES.indexOf(body.category) === -1 ? 'Strateji' : body.category;
+  const status = body.status === 'yayinda' ? 'yayinda' : 'taslak';
+
+  if (!slug) return jsonResponse(res, 400, { error: 'Adres (slug) boş olamaz.' });
+  if (!headline) return jsonResponse(res, 400, { error: 'Başlık boş olamaz.' });
+  if (!bodyHtml.trim()) return jsonResponse(res, 400, { error: 'Yazı gövdesi boş olamaz.' });
+
+  const simdi = new Date().toISOString();
+  const kayit = {
+    slug,
+    headline,
+    title: clean(body.title, 250) || headline + ' | Three Point Digital',
+    description: clean(body.description, 400),
+    category,
+    body_html: bodyHtml,
+    status,
+    sort_order: Number.isFinite(Number(body.sort_order)) ? Number(body.sort_order) : 999,
+    updated_at: simdi,
+  };
+
+  try {
+    const id = String(body.id || '');
+    if (UUID_RE.test(id)) {
+      if (status === 'yayinda' && body.published_at) kayit.published_at = body.published_at;
+      else if (status === 'yayinda') kayit.published_at = kayit.published_at || simdi;
+      const r = await supabase('/rest/v1/' + BLOG_TABLE + '?id=eq.' + id, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify(kayit),
+      });
+      if (!r.ok) {
+        const metin = (await r.text()).slice(0, 300);
+        console.error('[admin] yazı güncelleme hatası', r.status, metin);
+        return jsonResponse(res, 500, { error: metin.indexOf('duplicate') !== -1
+          ? 'Bu adres (slug) başka bir yazıda kullanılıyor.' : 'Yazı güncellenemedi.' });
+      }
+      blogCacheClear();
+      blogCacheClear();
+    return jsonResponse(res, 200, { ok: true, yazi: (await r.json())[0] || null });
+    }
+
+    kayit.id = crypto.randomUUID();
+    kayit.created_at = simdi;
+    kayit.published_at = status === 'yayinda' ? (body.published_at || simdi) : null;
+    const r = await supabase('/rest/v1/' + BLOG_TABLE, {
+      method: 'POST',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify(kayit),
+    });
+    if (!r.ok) {
+      const metin = (await r.text()).slice(0, 300);
+      console.error('[admin] yazı ekleme hatası', r.status, metin);
+      return jsonResponse(res, 500, { error: metin.indexOf('duplicate') !== -1
+        ? 'Bu adres (slug) zaten kullanılıyor.' : 'Yazı eklenemedi.' });
+    }
+    blogCacheClear();
+    return jsonResponse(res, 200, { ok: true, yazi: (await r.json())[0] || null });
+  } catch (error) {
+    console.error('[admin] yazı kaydetme hatası', error && error.message);
+    return jsonResponse(res, 500, { error: 'Yazı kaydedilemedi.' });
+  }
+}
+
+async function adminBlogDelete(req, res) {
+  if (!hasSupabase()) return supabaseUnavailable(res);
+  if (!sameOrigin(req)) return jsonResponse(res, 403, { error: 'Geçersiz istek kaynağı.' });
+
+  let body;
+  try {
+    body = await readBody(req);
+  } catch (e) {
+    return jsonResponse(res, 400, { error: 'Yazı silinemedi.' });
+  }
+  const id = String(body.id || '');
+  if (!UUID_RE.test(id)) return jsonResponse(res, 400, { error: 'Geçersiz kayıt.' });
+
+  try {
+    const r = await supabase('/rest/v1/' + BLOG_TABLE + '?id=eq.' + id, { method: 'DELETE' });
+    if (!r.ok) {
+      console.error('[admin] yazı silme hatası', r.status, (await r.text()).slice(0, 300));
+      return jsonResponse(res, 500, { error: 'Yazı silinemedi.' });
+    }
+    blogCacheClear();
+    return jsonResponse(res, 200, { ok: true });
+  } catch (error) {
+    console.error('[admin] yazı silme hatası', error && error.message);
+    return jsonResponse(res, 500, { error: 'Yazı silinemedi.' });
+  }
+}
+
+/* blog/*.html dosyalarındaki yazıları bir kez veritabanına aktarır.
+ * Var olan slug'lara dokunmaz; panelden yapılan düzenlemeleri ezmez. */
+async function adminBlogImport(req, res) {
+  if (!hasSupabase()) return supabaseUnavailable(res);
+  if (!sameOrigin(req)) return jsonResponse(res, 403, { error: 'Geçersiz istek kaynağı.' });
+
+  let mevcut = [];
+  try {
+    const r = await supabase('/rest/v1/' + BLOG_TABLE + '?select=slug&limit=500');
+    if (r.ok) mevcut = (await r.json()).map((x) => x.slug);
+  } catch (e) { /* boş liste ile devam */ }
+
+  let dosyalar;
+  try {
+    dosyalar = fs.readdirSync(path.join(ROOT, 'blog'))
+      .filter((f) => f.endsWith('.html') && !f.startsWith('_'))
+      .sort();
+  } catch (e) {
+    return jsonResponse(res, 500, { error: 'blog/ klasörü okunamadı.' });
+  }
+
+  const kayitlar = [];
+  const atlanan = [];
+  dosyalar.forEach((dosya) => {
+    const slug = dosya.slice(0, -5);
+    if (mevcut.indexOf(slug) !== -1) { atlanan.push(slug); return; }
+    let ham;
+    try { ham = fs.readFileSync(path.join(ROOT, 'blog', dosya), 'utf8'); }
+    catch (e) { return; }
+
+    const al = (re) => { const m = ham.match(re); return m ? m[1].trim() : ''; };
+    const govde = al(/<article class="prose">\n([\s\S]*?)\n          <\/article>/);
+    if (!govde) return;
+
+    const kategori = al(/<p class="eyebrow">([^<]+)<\/p>/);
+    const sira = parseInt(slug.slice(0, 2), 10);
+    kayitlar.push({
+      id: crypto.randomUUID(),
+      slug,
+      title: al(/<title>([\s\S]*?)<\/title>/),
+      headline: al(/<h1[^>]*>([\s\S]*?)<\/h1>/),
+      description: al(/<meta name="description" content="([^"]*)"/),
+      category: BLOG_CATEGORIES.indexOf(kategori) === -1 ? 'Strateji' : kategori,
+      // h2 id'leri render sırasında yeniden üretiliyor; gövdede tutulmasına gerek yok
+      body_html: govde.replace(/^ {12}/gm, '').replace(/<h2\s+id="[^"]*"\s*>/g, '<h2>'),
+      status: 'yayinda',
+      sort_order: Number.isFinite(sira) ? sira : 999,
+      published_at: (al(/"datePublished": "([^"]*)"/) || '2026-06-08') + 'T00:00:00Z',
+    });
+  });
+
+  if (!kayitlar.length) {
+    return jsonResponse(res, 200, { ok: true, eklenen: 0, atlanan: atlanan.length });
+  }
+
+  try {
+    const r = await supabase('/rest/v1/' + BLOG_TABLE, {
+      method: 'POST',
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify(kayitlar),
+    });
+    if (!r.ok) {
+      console.error('[admin] içe aktarma hatası', r.status, (await r.text()).slice(0, 300));
+      return jsonResponse(res, 500, { error: 'Yazılar içe aktarılamadı.' });
+    }
+    blogCacheClear();
+    console.log('[admin] blog içe aktarıldı:', kayitlar.length);
+    return jsonResponse(res, 200, { ok: true, eklenen: kayitlar.length, atlanan: atlanan.length });
+  } catch (error) {
+    console.error('[admin] içe aktarma hatası', error && error.message);
+    return jsonResponse(res, 500, { error: 'Yazılar içe aktarılamadı.' });
+  }
+}
+
+
 // --- Panel yönlendiricisi ---------------------------------------------------
 
 async function handleLogin(req, res) {
@@ -989,6 +1480,19 @@ async function handleAdmin(req, res, urlPath, url) {
   }
   if (urlPath === '/admin/api/kayitlar') return void adminRegistrations(req, res, url);
   if (urlPath === '/admin/api/disa-aktar') return void adminExport(req, res, url);
+  if (urlPath === '/admin/api/yazilar') return void adminBlogList(req, res);
+  if (urlPath === '/admin/api/yazi') {
+    if (req.method !== 'POST') return jsonResponse(res, 405, { error: 'Yalnızca POST desteklenir.' });
+    return void adminBlogSave(req, res);
+  }
+  if (urlPath === '/admin/api/yazi-sil') {
+    if (req.method !== 'POST') return jsonResponse(res, 405, { error: 'Yalnızca POST desteklenir.' });
+    return void adminBlogDelete(req, res);
+  }
+  if (urlPath === '/admin/api/yazi-aktar') {
+    if (req.method !== 'POST') return jsonResponse(res, 405, { error: 'Yalnızca POST desteklenir.' });
+    return void adminBlogImport(req, res);
+  }
 
   return jsonResponse(res, 404, { error: 'Bulunamadı.' });
 }
@@ -1128,6 +1632,15 @@ const server = http.createServer((req, res) => {
   // --- Sondaki eğik çizgiyi kaldır (kök hariç) ---
   if (urlPath.length > 1 && urlPath.endsWith('/')) {
     return redirect(res, urlPath.slice(0, -1) + query);
+  }
+
+  // --- Blog (içerik veritabanında; şablon dosyaları servis edilmez) ---
+  if (urlPath === '/blog') return void serveBlogIndex(res);
+  if (urlPath.startsWith('/blog/')) {
+    const slug = urlPath.slice('/blog/'.length);
+    if (!slug || slug.indexOf('/') !== -1 || slug.startsWith('_')) return notFound(res);
+    if (/^[a-z0-9-]+$/.test(slug)) return void serveBlogPost(res, slug, isLoggedIn(req));
+    return notFound(res);
   }
 
   if (urlPath === '/') urlPath = '/index.html';
