@@ -43,6 +43,16 @@
   RewriteRule ^(.+?)/$ /$1 [R=301,L]
 
   # -------------------------------------------------------------------
+  # 4b) /blog -> /blog.html (dizin çakışması)
+  #     blog/ gerçek bir dizin olduğu için 4 ve 5 numaralı kuralların
+  #     "!-d" koşulu /blog isteğinde sağlanmaz; kural 5 devreye girmez ve
+  #     istek dizin listelemesine düşer (Options -Indexes -> 403).
+  #     Bu yüzden blog.html açıkça eşlenir. Yazı sayfaları (/blog/xxx)
+  #     dizin olmadığı için kural 5 ile normal şekilde çözülür.
+  # -------------------------------------------------------------------
+  RewriteRule ^blog/?$ /blog.html [L]
+
+  # -------------------------------------------------------------------
   # 5) Uzantısız adresi ilgili .html dosyasına eşle (dahili, yönlendirmesiz)
   # -------------------------------------------------------------------
   RewriteCond %{REQUEST_FILENAME} !-f
