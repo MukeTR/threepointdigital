@@ -1324,6 +1324,7 @@ async function adminBlogImport(req, res) {
 
     const kategori = al(/<p class="eyebrow">([^<]+)<\/p>/);
     const sira = parseInt(slug.slice(0, 2), 10);
+    const yayin = (al(/"datePublished": "([^"]*)"/) || '2026-06-08') + 'T00:00:00Z';
     kayitlar.push({
       id: crypto.randomUUID(),
       slug,
@@ -1335,7 +1336,10 @@ async function adminBlogImport(req, res) {
       body_html: govde.replace(/^ {12}/gm, '').replace(/<h2\s+id="[^"]*"\s*>/g, '<h2>'),
       status: 'yayinda',
       sort_order: Number.isFinite(sira) ? sira : 999,
-      published_at: (al(/"datePublished": "([^"]*)"/) || '2026-06-08') + 'T00:00:00Z',
+      published_at: yayin,
+      // içerik değişmiyor, yalnızca yeri değişiyor: dateModified bugüne kaymasın
+      created_at: yayin,
+      updated_at: yayin,
     });
   });
 
