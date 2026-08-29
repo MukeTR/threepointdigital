@@ -243,7 +243,8 @@
       }
       .logo-onizleme img { max-width: 100%; max-height: 40px; width: auto; object-fit: contain; }
       .logo-satir .alanlar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-      .logo-satir input[type="text"] { width: min(200px, 100%); }
+      .logo-satir input[type="text"] { width: min(180px, 100%); }
+      .logo-satir input[data-alan="kategori"] { width: min(220px, 100%); }
       .logo-satir input[type="number"] { width: 76px; }
       .logo-satir .islem { display: flex; gap: 6px; }
       @media (max-width: 620px) {
@@ -1079,6 +1080,7 @@
               '<div class="logo-onizleme"><img src="' + esc(l.url || l.image_path) + '" alt="' + esc(l.name) + '" /></div>' +
               '<div class="alanlar">' +
                 '<input type="text" data-alan="name" value="' + esc(l.name) + '" maxlength="120" />' +
+                '<input type="text" data-alan="kategori" value="' + esc(l.kategori || "") + '" maxlength="160" placeholder="Kategori (ör. spor giyim)" />' +
                 '<input type="number" data-alan="sort_order" value="' + esc(String(l.sort_order)) + '" min="1" max="999" />' +
                 '<select data-alan="grup">' +
                   '<option value="uluslararasi"' + (l.grup === "yerel" ? "" : " selected") + '>Uluslararası</option>' +
@@ -1189,6 +1191,7 @@
               id: id,
               name: oku("name"),
               grup: oku("grup"),
+              kategori: oku("kategori"),
               image_path: kayit.image_path,
               width: kayit.width,
               height: kayit.height,

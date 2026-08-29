@@ -1396,6 +1396,67 @@ async function adminBlogImport(req, res) {
 
 const LOGO_TABLE = process.env.LOGO_TABLE || 'tpd_logos';
 const LOGO_BUCKET = 'logolar';
+/* Referans markaların kategori bilgisi (LinkedIn referans marka paketi, Ağustos 2026).
+ * İçe aktarmada logo adıyla eşleştirilir; panelden düzenlenebilir. */
+const LOGO_KATEGORILERI = {
+  'Aquafit': 'su arıtma sistemleri ve filtreleri',
+  'Asetim Hijab': 'tesettür giyim',
+  'Aurafix': 'ortopedik sağlık ürünleri',
+  'B&A Clean': 'kişisel bakım ve kozmetik',
+  'Balkan Triko': 'triko ve hazır giyim',
+  'Birkenstock': 'ayakkabı ve sandalet',
+  'Black Ribbon': 'kadın çanta ve aksesuar',
+  'Boventura': 'deri ürünleri ve çanta',
+  'Calvin Klein': 'moda, iç giyim ve aksesuar',
+  'Columbia': 'outdoor giyim ve ayakkabı',
+  'Cool Halı': 'halı ve kilim',
+  'Crocs': 'terlik, sandalet ve ayakkabı',
+  'Danger': 'erkek giyim',
+  'Ewela': 'kozmetik ve kişisel bakım',
+  'FashionHub': 'çok markalı moda perakendesi',
+  'Flosoft': 'ev, mutfak ve banyo ürünleri',
+  'FormActive': 'aktif giyim ve şekillendirici iç giyim',
+  'Garen': 'dış giyim',
+  'Giesto': 'erkek hazır giyim',
+  'Ground': 'valiz ve seyahat ürünleri',
+  'Jack & Jones': 'erkek giyim',
+  'Keep Rising': 'moda ve giyim',
+  'Kipling': 'çanta ve aksesuar',
+  'Lal Home Deco': 'ev tekstili ve dekorasyon',
+  'Luna Blu': 'çanta ve aksesuar',
+  'MapofX': 'harita, seyahat ve hediyelik ürünler',
+  'Max Icon': 'temizlik ve hijyen ürünleri',
+  'Metay Silver': 'gümüş takı ve mücevher',
+  'Michael Kors': 'çanta, aksesuar ve moda',
+  'Mina Alse': 'hazır giyim',
+  'Miss Poem': 'kadın hazır giyim',
+  'ModeXL': 'büyük beden erkek giyim',
+  'Nike': 'spor giyim ve ayakkabı',
+  'Nisra Kids': 'çocuk triko ve giyim',
+  'Nomarc': 'erkek sokak modası',
+  'Ohbe!': 'içecek ve gıda',
+  'Paşahan': 'erkek giyim',
+  'Pierre Cardin': 'moda ve erkek hazır giyim',
+  'Postcare Medical': 'ameliyat sonrası ortopedik destek ürünleri',
+  'Ravanelli': 'erkek hazır giyim ve gömlek',
+  'Real Dream': 'kadın iç giyim ve aktif giyim',
+  'Reef': 'terlik, sandalet ve ayakkabı',
+  'Rimense': 'kadın çanta ve aksesuar',
+  'Rufelli': 'erkek gömlek ve hazır giyim',
+  'Shooter': 'spor giyim ve sokak modası',
+  'Shule': 'çanta ve aksesuar',
+  'Swelle': 'doğal sabun ve kişisel bakım',
+  'Teknoloji Gelsin': 'tüketici elektroniği ve araç teknolojileri',
+  'The Tailor Classic': 'erkek klasik giyim ve takım elbise',
+  'Tiem Concept': 'mum, oda kokusu ve ev dekorasyonu',
+  'Tommy Hilfiger': 'moda, hazır giyim ve aksesuar',
+  'Turay': 'iç giyim, mayo ve pijama',
+  'Vitasent': 'vitamin ve takviye edici gıda',
+  'ZerafEv': 'mobilya aksesuarları ve ev dekorasyonu',
+  'İDS Collection': 'erkek giyim ve pantolon',
+  'İstanbul Tıp Kitabevi': 'tıp kitapları ve yayıncılık',
+};
+
 const LOGO_CACHE_MS = 60 * 1000;
 const LOGO_MAX_BYTES = 3 * 1024 * 1024;
 const LOGO_MIME = {
@@ -1411,7 +1472,7 @@ async function logoAll() {
   if (!hasSupabase()) return null;
   try {
     const r = await supabase('/rest/v1/' + LOGO_TABLE +
-      '?select=id,name,grup,image_path,width,height,status,sort_order&order=grup.asc,sort_order.asc,name.asc&limit=500');
+      '?select=id,name,grup,kategori,image_path,width,height,status,sort_order&order=grup.asc,sort_order.asc,name.asc&limit=500');
     if (!r.ok) {
       console.error('[logo] liste hatası', r.status, (await r.text()).slice(0, 200));
       return null;
@@ -1438,8 +1499,11 @@ function renderLogoTiles(logos, sinif) {
     const olcu = (l.width && l.height)
       ? ' width="' + Number(l.width) + '" height="' + Number(l.height) + '"'
       : '';
+    // Kategori biliniyorsa title olarak verilir: marka-kategori ilişkisi hem
+    // ziyaretçiye hem arama motoruna görünür olur.
+    const baslik = l.kategori ? ' title="' + htmlEscape(l.name + ' — ' + l.kategori) + '"' : '';
     return '            <div class="logo-tile"><img src="' + htmlEscape(logoSrc(l.image_path)) +
-      '" alt="' + htmlEscape(l.name) + '"' + olcu +
+      '" alt="' + htmlEscape(l.name) + '"' + baslik + olcu +
       ' loading="lazy" decoding="async" /></div>';
   }).join('\n');
   return '          <div class="' + sinif + '">\n' + tiles + '\n          </div>';
@@ -1476,7 +1540,7 @@ async function adminLogoList(req, res) {
   if (!hasSupabase()) return supabaseUnavailable(res);
   try {
     const r = await supabase('/rest/v1/' + LOGO_TABLE +
-      '?select=id,name,grup,image_path,width,height,status,sort_order,updated_at&order=grup.asc,sort_order.asc,name.asc&limit=500');
+      '?select=id,name,grup,kategori,image_path,width,height,status,sort_order,updated_at&order=grup.asc,sort_order.asc,name.asc&limit=500');
     if (!r.ok) {
       console.error('[admin] logo listesi hatası', r.status, (await r.text()).slice(0, 300));
       return jsonResponse(res, 500, { error: 'Logolar getirilemedi.' });
@@ -1576,6 +1640,7 @@ async function adminLogoSave(req, res) {
   const kayit = {
     name,
     grup: body.grup === 'yerel' ? 'yerel' : 'uluslararasi',
+    kategori: clean(body.kategori, 160) || null,
     image_path: imagePath,
     width: Number(body.width) || null,
     height: Number(body.height) || null,
@@ -1692,6 +1757,7 @@ async function adminLogoImport(req, res) {
       kayitlar.push({
         id: crypto.randomUUID(),
         name: m[2].replace(/&amp;/g, '&'),
+        kategori: LOGO_KATEGORILERI[m[2].replace(/&amp;/g, '&')] || null,
         grup,
         image_path: m[1],
         width: m[3] ? Number(m[3]) : null,

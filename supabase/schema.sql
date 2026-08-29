@@ -183,6 +183,7 @@ create table if not exists public.tpd_logos (
   id          uuid primary key,
   name        text not null,                  -- marka adı (img alt değeri)
   grup        text not null default 'uluslararasi', -- uluslararasi | yerel
+  kategori    text,                           -- markanın ürün kategorisi (title metni)
   image_path  text not null,                  -- kovadaki dosya yolu veya /images/... 
   width       integer,                        -- görselin doğal genişliği (CLS önlemek için)
   height      integer,
@@ -230,6 +231,7 @@ create or replace view public.tpd_referans_logolari as
     grup,
     sort_order as sira,
     name       as marka,
+    kategori,
     image_path as gorsel,
     case status when 'yayinda' then 'Yayında' else 'Gizli' end as durum,
     updated_at as son_guncelleme
