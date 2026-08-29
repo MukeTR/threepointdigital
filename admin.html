@@ -224,6 +224,32 @@
       .pill.kazanildi { background: #dcefe6; color: var(--green); }
       .pill.kayip { background: #f1e3e2; color: var(--danger); }
 
+      /* Referans logoları */
+      .logo-ekle {
+        display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+        padding: 16px; border: 1px dashed var(--line); border-radius: 14px;
+        background: var(--white); margin-bottom: 14px;
+      }
+      .logo-ekle input[type="text"] { width: min(220px, 100%); }
+      .logo-ekle input[type="number"] { width: 88px; }
+      .logo-ekle .spacer { margin-left: auto; }
+      .logo-satir {
+        display: grid; grid-template-columns: 92px 1fr auto; gap: 14px; align-items: center;
+        padding: 12px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--white);
+      }
+      .logo-onizleme {
+        display: grid; place-items: center; height: 54px;
+        border: 1px solid var(--line); border-radius: 10px; background: #fff; padding: 6px;
+      }
+      .logo-onizleme img { max-width: 100%; max-height: 40px; width: auto; object-fit: contain; }
+      .logo-satir .alanlar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      .logo-satir input[type="text"] { width: min(200px, 100%); }
+      .logo-satir input[type="number"] { width: 76px; }
+      .logo-satir .islem { display: flex; gap: 6px; }
+      @media (max-width: 620px) {
+        .logo-satir { grid-template-columns: 64px 1fr; }
+        .logo-satir .islem { grid-column: 1 / -1; }
+      }
       /* Blog editörü */
       .post-form { display: grid; gap: 14px; }
       .post-form label { display: grid; gap: 6px; font-size: 13.5px; color: var(--muted); }
@@ -365,6 +391,9 @@
           <button class="tab" role="tab" id="tab-yazilar" aria-selected="false" data-view="yazilar">
             Blog yazıları
           </button>
+          <button class="tab" role="tab" id="tab-logolar" aria-selected="false" data-view="logolar">
+            Referans logoları
+          </button>
         </div>
 
         <!-- Talepler -->
@@ -415,6 +444,24 @@
             <button class="button orange small" type="button" id="post-new">Yeni yazı</button>
           </div>
           <div class="list" id="post-list"></div>
+        </section>
+
+        <!-- Referans logoları -->
+        <section id="view-logolar" hidden>
+          <div class="logo-ekle">
+            <input type="file" id="logo-dosya" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif" />
+            <input type="text" id="logo-ad" maxlength="120" placeholder="Marka adı" />
+            <select id="logo-grup">
+              <option value="uluslararasi">Uluslararası marka</option>
+              <option value="yerel">Türkiye'den marka</option>
+            </select>
+            <input type="number" id="logo-sira" min="1" max="999" placeholder="Sıra" />
+            <button class="button orange small" type="button" id="logo-ekle">Ekle</button>
+            <span class="spacer"></span>
+            <button class="button ghost small" type="button" id="logo-aktar">Sayfadaki logoları aktar</button>
+          </div>
+          <p class="status-line" role="status" aria-live="polite" id="logo-durum"></p>
+          <div class="list" id="logo-list"></div>
         </section>
       </main>
     </div>
@@ -590,8 +637,10 @@
             el("view-talepler").hidden = aktifGorunum !== "talepler";
             el("view-kayitlar").hidden = aktifGorunum !== "kayitlar";
             el("view-yazilar").hidden = aktifGorunum !== "yazilar";
+            el("view-logolar").hidden = aktifGorunum !== "logolar";
             if (aktifGorunum === "kayitlar") kayitlariGetir();
             if (aktifGorunum === "yazilar") yazilariGetir();
+            if (aktifGorunum === "logolar") logolariGetir();
           });
         });
 
@@ -999,6 +1048,175 @@
         el("post-search").addEventListener("input", gecikmeliArama(yazilariCiz));
         el("post-status").addEventListener("change", yazilariCiz);
         el("post-headline").addEventListener("input", slugOnizleGuncelle);
+
+        /* ---------------- Referans logoları ---------------- */
+
+        var logolar = [];
+
+        function logoDurum(mesaj) { el("logo-durum").textContent = mesaj || ""; }
+
+        function logolariGetir() {
+          var list = el("logo-list");
+          list.innerHTML = '<div class="empty">Yükleniyor…</div>';
+          api("/admin/api/logolar")
+            .then(function (data) {
+              logolar = data.logolar || [];
+              if (!logolar.length) {
+                list.innerHTML = '<div class="empty">Henüz logo yok. Yukarıdan dosya seçip ekleyebilir ya da ' +
+                  '&ldquo;Sayfadaki logoları aktar&rdquo; ile sitede duran logoları buraya taşıyabilirsiniz.</div>';
+                return;
+              }
+              list.innerHTML = logolar.map(logoSatir).join("");
+            })
+            .catch(function (error) {
+              list.innerHTML = '<div class="empty">' + esc(error.message) + "</div>";
+            });
+        }
+
+        function logoSatir(l) {
+          return (
+            '<div class="logo-satir" data-id="' + esc(l.id) + '">' +
+              '<div class="logo-onizleme"><img src="' + esc(l.url || l.image_path) + '" alt="' + esc(l.name) + '" /></div>' +
+              '<div class="alanlar">' +
+                '<input type="text" data-alan="name" value="' + esc(l.name) + '" maxlength="120" />' +
+                '<input type="number" data-alan="sort_order" value="' + esc(String(l.sort_order)) + '" min="1" max="999" />' +
+                '<select data-alan="grup">' +
+                  '<option value="uluslararasi"' + (l.grup === "yerel" ? "" : " selected") + '>Uluslararası</option>' +
+                  '<option value="yerel"' + (l.grup === "yerel" ? " selected" : "") + '>Türkiye</option>' +
+                '</select>' +
+                '<select data-alan="status">' +
+                  '<option value="yayinda"' + (l.status === "yayinda" ? " selected" : "") + '>Yayında</option>' +
+                  '<option value="gizli"' + (l.status === "gizli" ? " selected" : "") + '>Gizli</option>' +
+                '</select>' +
+              "</div>" +
+              '<div class="islem">' +
+                '<button class="button orange small" type="button" data-islem="kaydet">Kaydet</button>' +
+                '<button class="button ghost small" type="button" data-islem="sil">Sil</button>' +
+              "</div>" +
+            "</div>"
+          );
+        }
+
+        /* Görselin doğal boyutu okunur: sayfaya width/height yazılınca
+           logolar yüklenirken düzen zıplamaz. */
+        function logoOlcu(dosya) {
+          return new Promise(function (bitir) {
+            var url = URL.createObjectURL(dosya);
+            var im = new Image();
+            im.onload = function () {
+              URL.revokeObjectURL(url);
+              bitir({ width: im.naturalWidth || null, height: im.naturalHeight || null });
+            };
+            im.onerror = function () { URL.revokeObjectURL(url); bitir({ width: null, height: null }); };
+            im.src = url;
+          });
+        }
+
+        function logoEkle() {
+          var girdi = el("logo-dosya");
+          var dosya = girdi.files && girdi.files[0];
+          var ad = el("logo-ad").value.trim();
+          if (!dosya) { logoDurum("Önce bir görsel seçin."); return; }
+          if (!ad) { logoDurum("Marka adı gerekli."); return; }
+
+          el("logo-ekle").disabled = true;
+          logoDurum("Yükleniyor…");
+
+          logoOlcu(dosya)
+            .then(function (olcu) {
+              return fetch("/admin/api/logo-yukle", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { "Content-Type": dosya.type, "X-Dosya-Adi": encodeURIComponent(dosya.name) },
+                body: dosya,
+              })
+                .then(function (r) { return r.json().then(function (d) {
+                  if (!r.ok) throw new Error(d.error || "Görsel yüklenemedi."); return d; }); })
+                .then(function (yuklenen) {
+                  return api("/admin/api/logo", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      name: ad,
+                      grup: el("logo-grup").value,
+                      image_path: yuklenen.image_path,
+                      width: olcu.width,
+                      height: olcu.height,
+                      status: "yayinda",
+                      sort_order: Number(el("logo-sira").value) || (logolar.length + 1),
+                    }),
+                  });
+                });
+            })
+            .then(function () {
+              girdi.value = ""; el("logo-ad").value = ""; el("logo-sira").value = "";
+              logoDurum("Eklendi.");
+              logolariGetir();
+            })
+            .catch(function (error) { logoDurum(error.message); })
+            .then(function () { el("logo-ekle").disabled = false; });
+        }
+
+        el("logo-list").addEventListener("click", function (event) {
+          var dugme = event.target.closest("button[data-islem]");
+          if (!dugme) return;
+          var satir = dugme.closest(".logo-satir");
+          var id = satir.getAttribute("data-id");
+          var kayit = logolar.find(function (l) { return l.id === id; });
+          if (!kayit) return;
+
+          if (dugme.getAttribute("data-islem") === "sil") {
+            if (dugme.textContent !== "Emin misiniz?") {
+              dugme.textContent = "Emin misiniz?";
+              setTimeout(function () { dugme.textContent = "Sil"; }, 4000);
+              return;
+            }
+            logoDurum("Siliniyor…");
+            api("/admin/api/logo-sil", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: id }),
+            })
+              .then(function () { logoDurum("Silindi."); logolariGetir(); })
+              .catch(function (error) { logoDurum(error.message); });
+            return;
+          }
+
+          var oku = function (alan) { return satir.querySelector('[data-alan="' + alan + '"]').value; };
+          logoDurum("Kaydediliyor…");
+          api("/admin/api/logo", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: id,
+              name: oku("name"),
+              grup: oku("grup"),
+              image_path: kayit.image_path,
+              width: kayit.width,
+              height: kayit.height,
+              status: oku("status"),
+              sort_order: Number(oku("sort_order")) || 999,
+            }),
+          })
+            .then(function () { logoDurum("Kaydedildi."); logolariGetir(); })
+            .catch(function (error) { logoDurum(error.message); });
+        });
+
+        el("logo-ekle").addEventListener("click", logoEkle);
+        el("logo-aktar").addEventListener("click", function () {
+          var dugme = el("logo-aktar");
+          dugme.disabled = true;
+          logoDurum("Aktarılıyor…");
+          api("/admin/api/logo-aktar", {
+            method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
+          })
+            .then(function (data) {
+              logoDurum(data.eklenen + " logo aktarıldı" +
+                (data.atlanan ? ", " + data.atlanan + " tanesi zaten kayıtlıydı" : "") + ".");
+              logolariGetir();
+            })
+            .catch(function (error) { logoDurum(error.message); })
+            .then(function () { dugme.disabled = false; });
+        });
+
         el("post-slug").addEventListener("input", slugOnizleGuncelle);
 
         document.addEventListener("keydown", function (event) {

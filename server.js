@@ -190,7 +190,25 @@ function notFound(res) {
   });
 }
 
+/* Logo bloğu taşıyan sayfalar; servis edilirken blok veritabanından doldurulur. */
+const LOGO_SAYFALARI = ['index.html', 'referanslar.html'];
+
+function serveLogoPage(res, filePath) {
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) return notFound(res);
+    injectLogos(data)
+      .then((html) => send(res, 200, MIME['.html'], html, { 'Cache-Control': cacheControl('.html') }))
+      .catch((error) => {
+        console.error('[logo] sayfa doldurulamadı', error && error.message);
+        send(res, 200, MIME['.html'], data, { 'Cache-Control': cacheControl('.html') });
+      });
+  });
+}
+
 function serveFile(res, filePath) {
+  if (LOGO_SAYFALARI.indexOf(path.basename(filePath)) !== -1) {
+    return serveLogoPage(res, filePath);
+  }
   fs.readFile(filePath, (err, data) => {
     if (err) return notFound(res);
     const ext = path.extname(filePath).toLowerCase();
@@ -1365,6 +1383,345 @@ async function adminBlogImport(req, res) {
   }
 }
 
+/* ===========================================================================
+   Referans logoları
+   ---------------------------------------------------------------------------
+   Kayıtlar tpd_logos tablosunda, görseller Supabase Storage'daki "logolar"
+   kovasında durur. Sunucu index.html ve referanslar.html içindeki
+   <!--LOGOLAR:sinif--> ... <!--/LOGOLAR--> bloğunu bu kayıtlarla değiştirir.
+
+   Tablo boşsa ya da veritabanına erişilemiyorsa blok olduğu gibi bırakılır;
+   sayfadaki mevcut statik logo listesi yedek olarak yayında kalır.
+   =========================================================================== */
+
+const LOGO_TABLE = process.env.LOGO_TABLE || 'tpd_logos';
+const LOGO_BUCKET = 'logolar';
+const LOGO_CACHE_MS = 60 * 1000;
+const LOGO_MAX_BYTES = 3 * 1024 * 1024;
+const LOGO_MIME = {
+  'image/png': '.png', 'image/jpeg': '.jpg', 'image/webp': '.webp',
+  'image/svg+xml': '.svg', 'image/gif': '.gif',
+};
+
+let logoCache = { at: 0, rows: null };
+function logoCacheClear() { logoCache = { at: 0, rows: null }; }
+
+async function logoAll() {
+  if (logoCache.rows && Date.now() - logoCache.at < LOGO_CACHE_MS) return logoCache.rows;
+  if (!hasSupabase()) return null;
+  try {
+    const r = await supabase('/rest/v1/' + LOGO_TABLE +
+      '?select=id,name,grup,image_path,width,height,status,sort_order&order=grup.asc,sort_order.asc,name.asc&limit=500');
+    if (!r.ok) {
+      console.error('[logo] liste hatası', r.status, (await r.text()).slice(0, 200));
+      return null;
+    }
+    const rows = await r.json();
+    logoCache = { at: Date.now(), rows };
+    return rows;
+  } catch (error) {
+    console.error('[logo] liste hatası', error && error.message);
+    return null;
+  }
+}
+
+/* Kovadaki dosya için herkese açık adres; /images/... ile başlayan yollar
+ * (sitede zaten duran logolar) olduğu gibi kullanılır. */
+function logoSrc(imagePath) {
+  const yol = String(imagePath || '');
+  if (yol.startsWith('/') || yol.startsWith('http')) return yol;
+  return SUPABASE_URL + '/storage/v1/object/public/' + LOGO_BUCKET + '/' + yol;
+}
+
+function renderLogoTiles(logos, sinif) {
+  const tiles = logos.map((l) => {
+    const olcu = (l.width && l.height)
+      ? ' width="' + Number(l.width) + '" height="' + Number(l.height) + '"'
+      : '';
+    return '            <div class="logo-tile"><img src="' + htmlEscape(logoSrc(l.image_path)) +
+      '" alt="' + htmlEscape(l.name) + '"' + olcu +
+      ' loading="lazy" decoding="async" /></div>';
+  }).join('\n');
+  return '          <div class="' + sinif + '">\n' + tiles + '\n          </div>';
+}
+
+/* Sayfadaki her logo bloğunu veritabanından doldurur.
+ *
+ * İşaret biçimi: <!--LOGOLAR:sinif:grup--> veya <!--LOGOLAR:sinif:grup:limit-->
+ * Bir grupta yayında kayıt yoksa o blok olduğu gibi bırakılır; sayfadaki
+ * mevcut statik liste yedek olarak yayında kalır.
+ */
+async function injectLogos(html) {
+  if (html.indexOf('<!--LOGOLAR:') === -1) return html;
+  const logos = await logoAll();
+  if (!logos || !logos.length) return html;            // yedek: sayfadaki statik liste
+
+  return html.replace(
+    /( *)<!--LOGOLAR:([a-z-]+):([a-z]+)(?::(\d+))?-->\n[\s\S]*?<!--\/LOGOLAR-->/g,
+    (blok, girinti, sinif, grup, limit) => {
+      let secilen = logos.filter((l) => l.status === 'yayinda' && l.grup === grup);
+      if (!secilen.length) return blok;                // yedek: statik liste kalsın
+      if (limit) secilen = secilen.slice(0, Number(limit));
+      const etiket = '<!--LOGOLAR:' + sinif + ':' + grup + (limit ? ':' + limit : '') + '-->';
+      return girinti + etiket + '\n' +
+        renderLogoTiles(secilen, sinif) + '\n' +
+        girinti + '<!--/LOGOLAR-->';
+    }
+  );
+}
+
+/* --- Panel uçları --------------------------------------------------------- */
+
+async function adminLogoList(req, res) {
+  if (!hasSupabase()) return supabaseUnavailable(res);
+  try {
+    const r = await supabase('/rest/v1/' + LOGO_TABLE +
+      '?select=id,name,grup,image_path,width,height,status,sort_order,updated_at&order=grup.asc,sort_order.asc,name.asc&limit=500');
+    if (!r.ok) {
+      console.error('[admin] logo listesi hatası', r.status, (await r.text()).slice(0, 300));
+      return jsonResponse(res, 500, { error: 'Logolar getirilemedi.' });
+    }
+    // Panelde önizleme için tam adres de gönderilir.
+    const rows = (await r.json()).map((l) => Object.assign({}, l, { url: logoSrc(l.image_path) }));
+    return jsonResponse(res, 200, { logolar: rows });
+  } catch (error) {
+    console.error('[admin] logo listesi hatası', error && error.message);
+    return jsonResponse(res, 500, { error: 'Logolar getirilemedi.' });
+  }
+}
+
+/* Ham gövdeyi okur (görsel yüklemesi JSON'a sığmaz). */
+function readRawBody(req, limit) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    req.on('data', (chunk) => {
+      size += chunk.length;
+      if (size > limit) { reject(new Error('too-large')); req.destroy(); return; }
+      chunks.push(chunk);
+    });
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
+/* Görseli kovaya yükler; gövde ham dosyadır, ad ve tür başlıklarda gelir. */
+async function adminLogoUpload(req, res) {
+  if (!hasSupabase()) return supabaseUnavailable(res);
+  if (!sameOrigin(req)) return jsonResponse(res, 403, { error: 'Geçersiz istek kaynağı.' });
+
+  const tur = String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+  const uzanti = LOGO_MIME[tur];
+  if (!uzanti) {
+    return jsonResponse(res, 415, { error: 'Yalnızca PNG, JPG, WEBP, SVG ve GIF yüklenebilir.' });
+  }
+
+  let dosya;
+  try {
+    dosya = await readRawBody(req, LOGO_MAX_BYTES);
+  } catch (e) {
+    return jsonResponse(res, e.message === 'too-large' ? 413 : 400,
+      { error: e.message === 'too-large' ? 'Dosya 3 MB sınırını aşıyor.' : 'Dosya okunamadı.' });
+  }
+  if (!dosya.length) return jsonResponse(res, 400, { error: 'Dosya boş.' });
+
+  // Dosya adı kova içinde çakışmasın; kullanıcıdan gelen ad temizlenir.
+  const ham = String(req.headers['x-dosya-adi'] || 'logo');
+  const taban = blogSlugify(decodeURIComponent(ham).replace(/\.[a-z0-9]+$/i, '')) || 'logo';
+  const yol = taban + '-' + crypto.randomBytes(4).toString('hex') + uzanti;
+
+  try {
+    const r = await fetch(SUPABASE_URL + '/storage/v1/object/' + LOGO_BUCKET + '/' + yol, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_SERVICE_KEY,
+        Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY,
+        'Content-Type': tur,
+        'Cache-Control': 'public, max-age=31536000',
+      },
+      body: dosya,
+    });
+    if (!r.ok) {
+      const metin = (await r.text()).slice(0, 300);
+      console.error('[admin] logo yükleme hatası', r.status, metin);
+      return jsonResponse(res, 500, {
+        error: metin.indexOf('Bucket not found') !== -1
+          ? 'Storage kovası yok. supabase/schema.sql dosyasını çalıştırın.'
+          : 'Görsel yüklenemedi.',
+      });
+    }
+    return jsonResponse(res, 200, { ok: true, image_path: yol, url: logoSrc(yol) });
+  } catch (error) {
+    console.error('[admin] logo yükleme hatası', error && error.message);
+    return jsonResponse(res, 500, { error: 'Görsel yüklenemedi.' });
+  }
+}
+
+async function adminLogoSave(req, res) {
+  if (!hasSupabase()) return supabaseUnavailable(res);
+  if (!sameOrigin(req)) return jsonResponse(res, 403, { error: 'Geçersiz istek kaynağı.' });
+
+  let body;
+  try {
+    body = await readBody(req);
+  } catch (e) {
+    return jsonResponse(res, 400, { error: 'Logo kaydedilemedi.' });
+  }
+
+  const name = clean(body.name, 120);
+  const imagePath = clean(body.image_path, 400);
+  if (!name) return jsonResponse(res, 400, { error: 'Marka adı gerekli.' });
+  if (!imagePath) return jsonResponse(res, 400, { error: 'Görsel gerekli.' });
+
+  const kayit = {
+    name,
+    grup: body.grup === 'yerel' ? 'yerel' : 'uluslararasi',
+    image_path: imagePath,
+    width: Number(body.width) || null,
+    height: Number(body.height) || null,
+    status: body.status === 'gizli' ? 'gizli' : 'yayinda',
+    sort_order: Number.isFinite(Number(body.sort_order)) ? Number(body.sort_order) : 999,
+    updated_at: new Date().toISOString(),
+  };
+
+  try {
+    const id = String(body.id || '');
+    let r;
+    if (UUID_RE.test(id)) {
+      r = await supabase('/rest/v1/' + LOGO_TABLE + '?id=eq.' + id, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify(kayit),
+      });
+    } else {
+      kayit.id = crypto.randomUUID();
+      r = await supabase('/rest/v1/' + LOGO_TABLE, {
+        method: 'POST',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify(kayit),
+      });
+    }
+    if (!r.ok) {
+      console.error('[admin] logo kaydetme hatası', r.status, (await r.text()).slice(0, 300));
+      return jsonResponse(res, 500, { error: 'Logo kaydedilemedi.' });
+    }
+    logoCacheClear();
+    return jsonResponse(res, 200, { ok: true, logo: (await r.json())[0] || null });
+  } catch (error) {
+    console.error('[admin] logo kaydetme hatası', error && error.message);
+    return jsonResponse(res, 500, { error: 'Logo kaydedilemedi.' });
+  }
+}
+
+async function adminLogoDelete(req, res) {
+  if (!hasSupabase()) return supabaseUnavailable(res);
+  if (!sameOrigin(req)) return jsonResponse(res, 403, { error: 'Geçersiz istek kaynağı.' });
+
+  let body;
+  try {
+    body = await readBody(req);
+  } catch (e) {
+    return jsonResponse(res, 400, { error: 'Logo silinemedi.' });
+  }
+  const id = String(body.id || '');
+  if (!UUID_RE.test(id)) return jsonResponse(res, 400, { error: 'Geçersiz kayıt.' });
+
+  try {
+    // Önce kaydı oku: kovadaki dosya da silinsin, artık dosya birikmesin.
+    let yol = '';
+    const oku = await supabase('/rest/v1/' + LOGO_TABLE + '?id=eq.' + id + '&select=image_path');
+    if (oku.ok) {
+      const satir = (await oku.json())[0];
+      if (satir && satir.image_path && !satir.image_path.startsWith('/')) yol = satir.image_path;
+    }
+
+    const r = await supabase('/rest/v1/' + LOGO_TABLE + '?id=eq.' + id, { method: 'DELETE' });
+    if (!r.ok) {
+      console.error('[admin] logo silme hatası', r.status, (await r.text()).slice(0, 300));
+      return jsonResponse(res, 500, { error: 'Logo silinemedi.' });
+    }
+
+    if (yol) {
+      try {
+        await fetch(SUPABASE_URL + '/storage/v1/object/' + LOGO_BUCKET + '/' + yol, {
+          method: 'DELETE',
+          headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY },
+        });
+      } catch (e) {
+        console.warn('[admin] kovadaki logo silinemedi:', yol, e && e.message);
+      }
+    }
+
+    logoCacheClear();
+    return jsonResponse(res, 200, { ok: true });
+  } catch (error) {
+    console.error('[admin] logo silme hatası', error && error.message);
+    return jsonResponse(res, 500, { error: 'Logo silinemedi.' });
+  }
+}
+
+/* Sayfalardaki mevcut statik logoları tabloya taşır (tek tık kurulum). */
+async function adminLogoImport(req, res) {
+  if (!hasSupabase()) return supabaseUnavailable(res);
+  if (!sameOrigin(req)) return jsonResponse(res, 403, { error: 'Geçersiz istek kaynağı.' });
+
+  let mevcut = [];
+  try {
+    const r = await supabase('/rest/v1/' + LOGO_TABLE + '?select=image_path&limit=200');
+    if (r.ok) mevcut = (await r.json()).map((x) => x.image_path);
+  } catch (e) { /* boş liste ile devam */ }
+
+  let ham;
+  try {
+    ham = fs.readFileSync(path.join(ROOT, 'referanslar.html'), 'utf8');
+  } catch (e) {
+    return jsonResponse(res, 500, { error: 'referanslar.html okunamadı.' });
+  }
+
+  // Sayfadaki her blok kendi grubuyla aktarılır.
+  const kayitlar = [];
+  const blokRe = /<!--LOGOLAR:[a-z-]+:([a-z]+)(?::\d+)?-->([\s\S]*?)<!--\/LOGOLAR-->/g;
+  let blok;
+  while ((blok = blokRe.exec(ham)) !== null) {
+    const grup = blok[1];
+    const imgRe = /<img src="([^"]+)" alt="([^"]*)"(?: width="(\d+)")?(?: height="(\d+)")?/g;
+    let m;
+    let sira = 1;
+    while ((m = imgRe.exec(blok[2])) !== null) {
+      if (mevcut.indexOf(m[1]) !== -1) continue;
+      kayitlar.push({
+        id: crypto.randomUUID(),
+        name: m[2].replace(/&amp;/g, '&'),
+        grup,
+        image_path: m[1],
+        width: m[3] ? Number(m[3]) : null,
+        height: m[4] ? Number(m[4]) : null,
+        status: 'yayinda',
+        sort_order: sira++,
+      });
+    }
+  }
+
+  if (!kayitlar.length) return jsonResponse(res, 200, { ok: true, eklenen: 0, atlanan: mevcut.length });
+
+  try {
+    const r = await supabase('/rest/v1/' + LOGO_TABLE, {
+      method: 'POST',
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify(kayitlar),
+    });
+    if (!r.ok) {
+      console.error('[admin] logo içe aktarma hatası', r.status, (await r.text()).slice(0, 300));
+      return jsonResponse(res, 500, { error: 'Logolar içe aktarılamadı.' });
+    }
+    logoCacheClear();
+    return jsonResponse(res, 200, { ok: true, eklenen: kayitlar.length, atlanan: mevcut.length });
+  } catch (error) {
+    console.error('[admin] logo içe aktarma hatası', error && error.message);
+    return jsonResponse(res, 500, { error: 'Logolar içe aktarılamadı.' });
+  }
+}
+
 
 // --- Panel yönlendiricisi ---------------------------------------------------
 
@@ -1491,6 +1848,23 @@ async function handleAdmin(req, res, urlPath, url) {
   if (urlPath === '/admin/api/yazi-sil') {
     if (req.method !== 'POST') return jsonResponse(res, 405, { error: 'Yalnızca POST desteklenir.' });
     return void adminBlogDelete(req, res);
+  }
+  if (urlPath === '/admin/api/logolar') return void adminLogoList(req, res);
+  if (urlPath === '/admin/api/logo-yukle') {
+    if (req.method !== 'POST') return jsonResponse(res, 405, { error: 'Yalnızca POST desteklenir.' });
+    return void adminLogoUpload(req, res);
+  }
+  if (urlPath === '/admin/api/logo') {
+    if (req.method !== 'POST') return jsonResponse(res, 405, { error: 'Yalnızca POST desteklenir.' });
+    return void adminLogoSave(req, res);
+  }
+  if (urlPath === '/admin/api/logo-sil') {
+    if (req.method !== 'POST') return jsonResponse(res, 405, { error: 'Yalnızca POST desteklenir.' });
+    return void adminLogoDelete(req, res);
+  }
+  if (urlPath === '/admin/api/logo-aktar') {
+    if (req.method !== 'POST') return jsonResponse(res, 405, { error: 'Yalnızca POST desteklenir.' });
+    return void adminLogoImport(req, res);
   }
   if (urlPath === '/admin/api/yazi-aktar') {
     if (req.method !== 'POST') return jsonResponse(res, 405, { error: 'Yalnızca POST desteklenir.' });

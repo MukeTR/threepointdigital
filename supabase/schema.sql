@@ -165,3 +165,73 @@ create or replace view public.tpd_yazilar as
     updated_at   as son_guncelleme
   from public.tpd_blog_posts
   order by sort_order, published_at desc;
+
+
+-- ===========================================================================
+-- Referans logoları (/admin > Referans logoları sekmesinden yönetilir)
+--
+-- Logo görselleri Supabase Storage'daki "logolar" kovasında durur; tabloda
+-- yalnızca kaydın kendisi ve görselin yolu tutulur. Hostinger'da uygulama
+-- dizini dağıtımlarda değiştiği için dosyayı sunucuya yazmak kalıcı olmazdı.
+--
+-- Sunucu ana sayfadaki logo şeridini ve referanslar sayfasındaki ızgarayı bu
+-- tablodan doldurur; tablo boşsa ya da erişilemezse sayfalardaki mevcut statik
+-- liste olduğu gibi kalır.
+-- ===========================================================================
+
+create table if not exists public.tpd_logos (
+  id          uuid primary key,
+  name        text not null,                  -- marka adı (img alt değeri)
+  grup        text not null default 'uluslararasi', -- uluslararasi | yerel
+  image_path  text not null,                  -- kovadaki dosya yolu veya /images/... 
+  width       integer,                        -- görselin doğal genişliği (CLS önlemek için)
+  height      integer,
+  status      text not null default 'yayinda',-- yayinda | gizli
+  sort_order  integer not null default 999,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+create index if not exists tpd_logos_order_idx  on public.tpd_logos (grup, status, sort_order);
+
+alter table public.tpd_logos enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'tpd_logos_status_chk') then
+    alter table public.tpd_logos
+      add constraint tpd_logos_status_chk check (status in ('yayinda', 'gizli'));
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'tpd_logos_grup_chk') then
+    alter table public.tpd_logos
+      add constraint tpd_logos_grup_chk check (grup in ('uluslararasi', 'yerel'));
+  end if;
+end $$;
+
+-- Görsel kovası: herkese açık okuma, yazma yalnızca servis anahtarıyla.
+insert into storage.buckets (id, name, public)
+values ('logolar', 'logolar', true)
+on conflict (id) do nothing;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'storage' and tablename = 'objects' and policyname = 'tpd_logolar_acik_okuma'
+  ) then
+    create policy tpd_logolar_acik_okuma on storage.objects
+      for select to anon, authenticated using (bucket_id = 'logolar');
+  end if;
+end $$;
+
+-- Panel dışında okumak için okunaklı görünüm.
+create or replace view public.tpd_referans_logolari as
+  select
+    grup,
+    sort_order as sira,
+    name       as marka,
+    image_path as gorsel,
+    case status when 'yayinda' then 'Yayında' else 'Gizli' end as durum,
+    updated_at as son_guncelleme
+  from public.tpd_logos
+  order by grup, sort_order, name;
