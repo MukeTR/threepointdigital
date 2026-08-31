@@ -454,7 +454,7 @@
     if (document.querySelector(".whatsapp-float")) return;
 
     var phone = "905350557849";
-    var message = "Merhaba, Three Point Digital hakkında bilgi almak istiyorum.";
+    var message = "Merhaba, Hizmetleriniz hakkında bilgi almak istiyorum.";
     var link = document.createElement("a");
     link.className = "whatsapp-float";
     link.href = "https://wa.me/" + phone + "?text=" + encodeURIComponent(message);
