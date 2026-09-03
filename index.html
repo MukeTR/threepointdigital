@@ -728,27 +728,29 @@
             method="post"
             action="/api/iletisim"
             novalidate
+            toolname="ucretsiz-pazaryeri-analizi-talep-et"
+            tooldescription="Three Point Digital'den ücretsiz pazaryeri analizi ve iletişim talebi gönderir. Trendyol, Amazon Türkiye veya Hepsiburada'da satan ya da satışa başlamak isteyen bir marka adına ad soyad, marka, iş e-postası, öncelikli pazaryeri ve hedef/sorun bilgisiyle geri arama talebi oluşturur. Talep ekibe iletilir, 1 iş günü içinde dönüş yapılır. Gönderimden önce kullanıcı KVKK onayı vermelidir."
           >
             <div class="calc-fields">
               <div class="field">
                 <label for="name">Ad soyad <span class="req" aria-hidden="true">*</span></label>
-                <input id="name" name="name" type="text" autocomplete="name" required placeholder="Adınız ve soyadınız" />
+                <input id="name" name="name" type="text" autocomplete="name" required placeholder="Adınız ve soyadınız" toolparamdescription="Talep eden kişinin adı ve soyadı." />
               </div>
               <div class="field">
                 <label for="brand">Marka / şirket <span class="req" aria-hidden="true">*</span></label>
-                <input id="brand" name="brand" type="text" autocomplete="organization" required placeholder="Markanızın adı" />
+                <input id="brand" name="brand" type="text" autocomplete="organization" required placeholder="Markanızın adı" toolparamdescription="Pazaryerinde satış yapan veya yapacak marka ya da şirket adı." />
               </div>
               <div class="field">
                 <label for="email">İş e-postası <span class="req" aria-hidden="true">*</span></label>
-                <input id="email" name="email" type="email" autocomplete="email" required placeholder="isim@marka.com" />
+                <input id="email" name="email" type="email" autocomplete="email" required placeholder="isim@marka.com" toolparamdescription="Geri dönüş yapılacak iş e-posta adresi." />
               </div>
               <div class="field">
                 <label for="phone">Telefon</label>
-                <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="İsteğe bağlı" />
+                <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="İsteğe bağlı" toolparamdescription="İsteğe bağlı telefon numarası; Türkiye biçimi, örn. 0555 555 55 55." />
               </div>
               <div class="field">
                 <label for="marketplace">Öncelikli pazaryeri <span class="req" aria-hidden="true">*</span></label>
-                <select id="marketplace" name="marketplace" required>
+                <select id="marketplace" name="marketplace" required toolparamdescription="Markanın öncelik verdiği pazaryeri. Seçeneklerden biri: Trendyol, Amazon Türkiye, Hepsiburada, Birden fazla platform, Henüz satışa başlamadım.">
                   <option value="">Seçiniz</option>
                   <option>Trendyol</option>
                   <option>Amazon Türkiye</option>
@@ -759,7 +761,7 @@
               </div>
               <div class="field">
                 <label for="revenue">Aylık pazaryeri cirosu</label>
-                <select id="revenue" name="revenue">
+                <select id="revenue" name="revenue" toolparamdescription="Markanın aylık toplam pazaryeri cirosu aralığı (TL). Bilinmiyorsa boş bırakın.">
                   <option value="">Belirtmek istemiyorum</option>
                   <option>0 – 250.000 TL</option>
                   <option>250.000 – 1.000.000 TL</option>
@@ -769,17 +771,17 @@
               </div>
               <div class="field full">
                 <label for="message">Hedefiniz veya mevcut sorununuz <span class="req" aria-hidden="true">*</span></label>
-                <textarea id="message" name="message" required placeholder="Hangi platformda, hangi kategoride ve neyi çözmek istediğinizi kısaca yazın."></textarea>
+                <textarea id="message" name="message" required placeholder="Hangi platformda, hangi kategoride ve neyi çözmek istediğinizi kısaca yazın." toolparamdescription="Markanın hedefi veya mevcut sorunu: hangi platform, hangi kategori, ne çözülmek isteniyor (2-5 cümle)."></textarea>
               </div>
             </div>
 
             <div class="hp-field" aria-hidden="true">
               <label for="_honey">Bu alanı boş bırakın</label>
-              <input id="_honey" name="_honey" type="text" tabindex="-1" autocomplete="off" />
+              <input id="_honey" name="_honey" type="text" tabindex="-1" autocomplete="off" toolparamdescription="Bot tuzağı alanıdır. Her zaman boş bırakın; doldurulursa talep işlenmez." />
             </div>
 
             <label class="check-field">
-              <input type="checkbox" name="consent" value="evet" required />
+              <input type="checkbox" name="consent" value="evet" required toolparamdescription="KVKK aydınlatma metni onayı. Talebin işlenmesi için kullanıcının onayıyla işaretlenmesi zorunludur." />
               <span>
                 İletişim talebimin değerlendirilmesi ve bana geri dönüş yapılması amacıyla
                 paylaştığım bilgilerin işlenmesini kabul ediyorum.
@@ -836,6 +838,6 @@
       </div>
     </footer>
 
-    <script src="/assets/site.js?v=20260831b" defer></script>
+    <script src="/assets/site.js?v=20260903" defer></script>
   </body>
 </html>

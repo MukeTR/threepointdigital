@@ -147,3 +147,7 @@ stok ve raporlama) Three Point Digital yürütür. Liste kategoriye göre grupla
 - Kârlılık hesaplama aracındaki sonuçlar tahminidir; iade, paketleme, depolama ve kategoriye özel
   ek kesintileri içermez.
 - Bu dosya bir içerik dizinidir; sıralama faktörü veya görünürlük garantisi değildir.
+
+## Yapay zekâ ajanları için araçlar (WebMCP)
+- Deklaratif form araçları: ana sayfadaki iletişim formu `ucretsiz-pazaryeri-analizi-talep-et`, Kârlılık Merkezi kayıt formu `karlilik-merkezi-ucretsiz-hesap-olustur` (toolname/tooldescription/toolparamdescription nitelikleri). Otomatik gönderim kapalıdır; kullanıcı onayı gerekir.
+- Imperative araç: `karlilik-hesapla` (navigator.modelContext) — KDV dahil satış/alış fiyatı, komisyon, reklam, kargo, genel gider ve stopaj ile tek ürünün tahmini net kârını ve marjını döndürür. Tüm sayfalarda kayıtlıdır, salt okunurdur.

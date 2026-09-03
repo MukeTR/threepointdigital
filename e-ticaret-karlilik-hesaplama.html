@@ -523,7 +523,7 @@
                 telefonu yeter; pazaryeri karşılaştırmasına ve kayıtlı ürünlere hemen eriş. Aynı
                 numarayla başka bir cihazdan girdiğinde ürünlerin seni takip eder.
               </p>
-              <form data-ps-register-form novalidate>
+              <form data-ps-register-form novalidate toolname="karlilik-merkezi-ucretsiz-hesap-olustur" tooldescription="Kârlılık Merkezi için ücretsiz hesap oluşturur; şifre veya kart gerekmez. Ad soyad, e-posta ve cep telefonu ile pazaryeri karşılaştırması ve ürün kaydetme özellikleri açılır. Kullanıcı onayı alınmadan gönderilmemelidir.">
                 <label class="ps-field">
                   <span class="ps-label">Ad soyad</span>
                   <span class="ps-input">
@@ -531,6 +531,7 @@
                       type="text"
                       name="fullName"
                       required
+                      toolparamdescription="Kullanıcının adı ve soyadı."
                       placeholder="Adın ve soyadın"
                       autocomplete="name"
                       maxlength="120"
@@ -544,6 +545,7 @@
                       type="email"
                       name="email"
                       required
+                      toolparamdescription="Hesabın bağlanacağı e-posta adresi."
                       placeholder="ornek@magaza.com"
                       autocomplete="email"
                       inputmode="email"
@@ -558,6 +560,7 @@
                       type="tel"
                       name="contact"
                       required
+                      toolparamdescription="Cep telefonu numarası; Türkiye biçimi, örn. 0555 555 55 55. Aynı numarayla başka cihazdan giriş yapılabilir."
                       placeholder="0555 555 55 55"
                       inputmode="tel"
                       autocomplete="tel"
@@ -567,10 +570,10 @@
                 </label>
                 <div class="ps-hp" aria-hidden="true">
                   <label for="ps-website">Bu alanı boş bırakın</label>
-                  <input id="ps-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+                  <input id="ps-website" name="website" type="text" tabindex="-1" autocomplete="off" toolparamdescription="Bot tuzağı alanıdır. Her zaman boş bırakın; doldurulursa kayıt reddedilir." />
                 </div>
                 <label class="ps-consent">
-                  <input type="checkbox" name="consent" />
+                  <input type="checkbox" name="consent" toolparamdescription="Ücretsiz hesap oluşturma ve ürün iletişimleri için veri işleme onayı. Kullanıcının onayıyla işaretlenmelidir." />
                   <span>
                     Bilgilerimin ücretsiz hesabımı oluşturmak ve ürün iletişimleri için
                     işlenmesini kabul ediyorum. <a href="/gizlilik">Aydınlatma metni</a>
@@ -767,7 +770,7 @@
       </div>
     </footer>
 
-    <script src="/assets/site.js?v=20260831b" defer></script>
+    <script src="/assets/site.js?v=20260903" defer></script>
     <script src="/assets/profit-studio.js?v=20260827" defer></script>
   </body>
 </html>

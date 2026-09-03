@@ -422,28 +422,42 @@
         );
       }
 
-      json("/api/iletisim", lead)
+      var sonuc = json("/api/iletisim", lead)
         .then(function (r) {
-          if (r.ok) return basarili();
+          if (r.ok) {
+            basarili();
+            return { ok: true, message: "Talep alındı. 1 iş günü içinde dönüş yapılacak." };
+          }
           // 400: kullanıcının doldurduğu alanlarda sorun var, mesajı göster.
           if (r.status === 400 && r.data && r.data.error) {
             showStatus(r.data.error, "error");
-            return;
+            return { ok: false, message: r.data.error };
           }
           throw new Error("gonderilemedi");
         })
         .catch(function () {
-          showStatus(
-            "Form gönderilemedi. Lütfen tekrar deneyin veya info@threepointdigital.com adresine yazın.",
-            "error"
-          );
+          var hata =
+            "Form gönderilemedi. Lütfen tekrar deneyin veya info@threepointdigital.com adresine yazın.";
+          showStatus(hata, "error");
+          return { ok: false, message: hata };
         })
-        .then(function () {
+        .then(function (r) {
           if (button) {
             button.disabled = false;
             button.textContent = originalLabel;
           }
+          return r;
         });
+
+      // WebMCP (deklaratif araç): gönderimi bir ajan tetiklediyse sayfa
+      // yönlendirmeden sonucu araç yanıtı olarak döndür.
+      if (event.agentInvoked && typeof event.respondWith === "function") {
+        event.respondWith(
+          sonuc.then(function (r) {
+            return { content: [{ type: "text", text: (r.ok ? "Başarılı: " : "Hata: ") + r.message }] };
+          })
+        );
+      }
     });
   }
 
@@ -467,7 +481,100 @@
   }
 
   /* ------------------------------------------------------------------ *
-   * 5) Başlangıç
+   * 5) WebMCP — yapay zekâ ajanları için araç kaydı
+   *    Deklaratif formlar (toolname/tooldescription) HTML'de; burada ise
+   *    kârlılık motorunu bir "imperative" araç olarak kaydediyoruz.
+   *    Tarayıcı desteklemiyorsa sessizce atlanır.
+   * ------------------------------------------------------------------ */
+  function initWebMCP() {
+    var mc =
+      (typeof navigator !== "undefined" && navigator.modelContext) ||
+      (typeof document !== "undefined" && document.modelContext);
+    if (!mc || typeof mc.registerTool !== "function") return;
+
+    function num(value, fallback) {
+      var parsed = typeof value === "number" ? value : parseFloat(value);
+      return isFinite(parsed) ? parsed : fallback;
+    }
+
+    try {
+      var kayit = mc.registerTool({
+        name: "karlilik-hesapla",
+        description:
+          "Türkiye pazaryerleri (Trendyol, Amazon TR, Hepsiburada) için tek ürünün tahmini net kârını ve kâr marjını hesaplar. " +
+          "Tutarlar TL ve KDV dahil girilir; komisyon, reklam ve stopaj yüzde olarak verilir. " +
+          "Sonuç KDV hariç net satış, kalem kalem giderler, ödenecek KDV, toplam gider, net kâr ve marjı içerir. " +
+          "İade, paketleme ve kategoriye özel ek kesintiler dahil değildir; sonuç tahmindir.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            sale: { type: "number", minimum: 0, description: "Satış fiyatı, TL, KDV dahil." },
+            purchase: { type: "number", minimum: 0, description: "Ürün alış maliyeti, TL, KDV dahil." },
+            commission: { type: "number", minimum: 0, maximum: 100, description: "Pazaryeri komisyon oranı, yüzde (örn. 21.5)." },
+            vat: { type: "number", enum: [0, 1, 10, 20], description: "Ürünün KDV oranı, yüzde. Varsayılan 20." },
+            advertising: { type: "number", minimum: 0, maximum: 100, description: "Reklam gideri, satış fiyatının yüzdesi. Varsayılan 0." },
+            shipping: { type: "number", minimum: 0, description: "Sipariş başına kargo gideri, TL, KDV dahil. Varsayılan 0." },
+            general: { type: "number", minimum: 0, description: "Sipariş başına genel gider (paketleme, operasyon), TL, KDV dahil. Varsayılan 0." },
+            withholding: { type: "number", minimum: 0, maximum: 100, description: "Stopaj oranı, net satışın yüzdesi. Varsayılan 1." }
+          },
+          required: ["sale", "purchase", "commission"]
+        },
+        annotations: { readOnlyHint: true, idempotentHint: true },
+        execute: function (args) {
+          args = args || {};
+          var values = {
+            sale: num(args.sale, 0),
+            purchase: num(args.purchase, 0),
+            commission: num(args.commission, 0),
+            vat: num(args.vat, 20),
+            advertising: num(args.advertising, 0),
+            shipping: num(args.shipping, 0),
+            general: num(args.general, 0),
+            withholding: num(args.withholding, 1)
+          };
+          var r = compute(values);
+          var satirlar = [
+            "Tahmini net kâr: " + money(r.profit) + " (marj " + percent(r.margin) + ")",
+            "Net satış (KDV hariç): " + money(r.netSale),
+            "Ürün maliyeti (net): " + money(r.netPurchase),
+            "Komisyon: " + money(r.commission),
+            "Reklam: " + money(r.advertising),
+            "Kargo (net): " + money(r.netShipping),
+            "Genel gider (net): " + money(r.generalNet),
+            "Stopaj: " + money(r.withholding),
+            "Tahmini ödenecek KDV: " + money(r.payableVat),
+            "Toplam gider: " + money(r.totalCost),
+            "Not: Sonuç tahmindir; iade, paketleme ve kategoriye özel kesintiler dahil değildir."
+          ];
+          return {
+            content: [{ type: "text", text: satirlar.join("\n") }],
+            structuredContent: {
+              currency: "TRY",
+              inputs: values,
+              netSale: r.netSale,
+              netPurchase: r.netPurchase,
+              commission: r.commission,
+              advertising: r.advertising,
+              netShipping: r.netShipping,
+              generalNet: r.generalNet,
+              withholding: r.withholding,
+              payableVat: r.payableVat,
+              totalCost: r.totalCost,
+              profit: r.profit,
+              marginPercent: r.margin
+            }
+          };
+        }
+      });
+      // Bazı sürümler Promise döndürür; reddedilirse sessiz kal.
+      if (kayit && typeof kayit.catch === "function") kayit.catch(function () {});
+    } catch (error) {
+      /* WebMCP olmayan tarayıcı: hiçbir şey yapma */
+    }
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 6) Başlangıç
    * ------------------------------------------------------------------ */
   function init() {
     initNav();
@@ -476,6 +583,7 @@
     document.querySelectorAll("[data-calculator]").forEach(initCalculator);
     initContactForm();
     initWhatsAppButton();
+    initWebMCP();
     document.querySelectorAll("[data-current-year]").forEach(function (element) {
       element.textContent = String(new Date().getFullYear());
     });
