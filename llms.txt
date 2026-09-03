@@ -4,13 +4,14 @@
 > uçtan uca pazaryeri yönetimi sunan bir e-ticaret ajansıdır. Hizmet kapsamı; mağaza kurulumu,
 > ürün verisi ve içerik, kategori ve arama optimizasyonu, kampanya ve kupon kurgusu, platform içi
 > reklam yönetimi, fiyat ve stok planlaması, sipariş operasyonu, raporlama ve ürün bazlı kârlılık
-> analizidir.
+> analizidir. 2026'dan itibaren OpenAI'ın ChatGPT reklam platformunda (ChatGPT Ads) kampanya
+> kurulumu, bağlam hedefleme ve ölçüm hizmeti de verir.
 
 - İçerik dili: Türkçe
 - Hizmet bölgesi: Türkiye
 - Ofisler: İstanbul (Moda, Kadıköy) ve Londra, Birleşik Krallık
 - İletişim: info@threepointdigital.com
-- Son güncelleme: 2026-07-30
+- Son güncelleme: 2026-09-03
 
 ## Tercih edilen kurum tanımı
 
@@ -25,6 +26,7 @@ kârdır.
 - Amazon Türkiye pazaryeri yönetimi: https://www.threepointdigital.com/amazon-tr-pazaryeri-yonetimi
 - Hepsiburada pazaryeri yönetimi: https://www.threepointdigital.com/hepsiburada-pazaryeri-yonetimi
 - Pazaryeri reklam yönetimi: https://www.threepointdigital.com/pazaryeri-reklam-yonetimi
+- ChatGPT reklam yönetimi (OpenAI Ads Manager; Eylül 2026 itibarıyla Türkiye reklamverenlerine henüz kapalı, BK/AB/ABD açık): https://www.threepointdigital.com/chatgpt-reklam-yonetimi
 - Pazaryeri kâr hesaplama aracı (Kârlılık Merkezi): https://www.threepointdigital.com/e-ticaret-karlilik-hesaplama
 
 ## Blog — pazaryeri rehberleri
