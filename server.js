@@ -1970,6 +1970,9 @@ const LEGACY_REDIRECTS = new Map([
   ['/category/e-ticaret', '/blog'],
   ['/category/pazaryerleri', '/blog'],
   ['/basari-hikayeleri', '/referanslar'],
+  // ChatGPT Ads sayfası yayından kaldırıldı (Eylül 2026); indekslenmiş adres
+  // ve dış bağlantılar en yakın hizmet sayfasına taşınır.
+  ['/chatgpt-reklam-yonetimi', '/pazaryeri-reklam-yonetimi'],
 ]);
 
 // Tek tek sayılmayan alt sayfalar için önek kuralı; tabloda birebir eşleşme
