@@ -88,6 +88,19 @@ const HOST = process.env.HOST || '0.0.0.0';
 // 'www.threepointdigital.com' olarak tanımlamak yeterli.
 const CANONICAL_HOST = process.env.CANONICAL_HOST || '';
 
+// Yalnızca BİLİNEN takma adlardan kanonik host'a 301. CANONICAL_HOST'tan farkı:
+// bu liste "tanımadığım her host'u yönlendir" demez, yalnızca sayılan host'lara
+// dokunur. hPanel sağlık yoklaması başka bir Host ile gelse bile 200 alır, yani
+// yukarıdaki 503 riski doğmaz.
+//
+// Neden gerekli: siteyi Apache değil bu Node uygulaması servis ediyor, bu yüzden
+// .htaccess'teki non-www -> www kuralı hiç çalışmıyordu; her sayfa iki ayrı
+// host'ta 200 dönüyor ve canonical www'yu gösteriyordu (21 Eyl 2026 tespiti).
+const HOST_ALIASES = new Set(
+  (process.env.HOST_ALIASES || 'threepointdigital.com').split(',').map((h) => h.trim()).filter(Boolean)
+);
+const PRIMARY_HOST = process.env.CANONICAL_HOST || 'www.threepointdigital.com';
+
 // --- Kârlılık Merkezi mini uygulaması ---------------------------------------
 // Kayıt ve kaydedilen ürünler Supabase'de durur. Servis anahtarı yalnızca
 // sunucuda okunur; tarayıcıya hiç gitmez. Ortam değişkenleri tanımlı değilse
@@ -1009,6 +1022,70 @@ function blogBodyWithToc(bodyHtml) {
   return { body, toc };
 }
 
+/* Yazı gövdesindeki "Sık sorulan soru(lar)" bölümünden FAQPage düğümü üretir.
+ *
+ * İki kalıbı da tanır:
+ *   <h3>Soru?</h3><p>Cevap</p>                    (yeni yazılar)
+ *   <p><strong>Soru?</strong></p><p>Cevap</p>     (eski yazılar)
+ *
+ * Şema yalnızca sayfada GÖRÜNEN metinden üretilir; Google'ın "soru ve cevap
+ * kullanıcıya görünür olmalı" kuralı bu yüzden kendiliğinden sağlanır.
+ * Bölüm yoksa boş dize döner ve @graph değişmez.
+ */
+function blogFaqJsonLd(bodyHtml, url) {
+  const body = String(bodyHtml || '');
+  const bas = body.search(/<h2\b[^>]*>\s*S[ıi]k\s+sorulan\s+soru/i);
+  if (bas === -1) return '';
+
+  // Bölüm, bir sonraki h2'ye kadar sürer.
+  let bolum = body.slice(bas);
+  const sonraki = bolum.slice(1).search(/<h2\b/i);
+  if (sonraki !== -1) bolum = bolum.slice(0, sonraki + 1);
+
+  const duz = (t) => String(t || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const sorular = [];
+  const ekle = (soru, cevap) => {
+    const s1 = duz(soru), c1 = duz(cevap);
+    if (s1 && c1 && s1.length <= 300) sorular.push({ s: s1, c: c1 });
+  };
+
+  // Kalıp 1: <h3>...</h3> + ardındaki <p>'ler
+  const h3 = /<h3\b[^>]*>([\s\S]*?)<\/h3>([\s\S]*?)(?=<h3\b|<h2\b|$)/gi;
+  let m;
+  while ((m = h3.exec(bolum))) {
+    const p1 = (m[2].match(/<p\b[^>]*>[\s\S]*?<\/p>/gi) || []).map(duz).filter(Boolean);
+    if (p1.length) ekle(m[1], p1.join(' '));
+  }
+
+  // Kalıp 2: <p><strong>Soru</strong></p> + sonraki <p>
+  if (!sorular.length) {
+    const par = bolum.match(/<p\b[^>]*>[\s\S]*?<\/p>/gi) || [];
+    for (let i = 0; i < par.length - 1; i++) {
+      const tekBasinaGuclu = /^<p\b[^>]*>\s*<strong>([\s\S]*?)<\/strong>\s*<\/p>$/i.exec(par[i]);
+      if (tekBasinaGuclu && !/<strong>/i.test(par[i + 1])) ekle(tekBasinaGuclu[1], par[i + 1]);
+    }
+  }
+
+  if (!sorular.length) return '';
+  const girinti = '          ';
+  return ',\n' + girinti + '{\n' +
+    girinti + '  "@type": "FAQPage",\n' +
+    girinti + '  "@id": "' + url + '#faq",\n' +
+    girinti + '  "mainEntity": [\n' +
+    sorular.map((q) =>
+      girinti + '    { "@type": "Question", "name": "' + jsonEscape(q.s) + '",\n' +
+      girinti + '      "acceptedAnswer": { "@type": "Answer", "text": "' + jsonEscape(q.c) + '" } }'
+    ).join(',\n') + '\n' +
+    girinti + '  ]\n' +
+    girinti + '}';
+}
+
 function renderBlogPost(post, prev, next) {
   const tpl = blogTemplates();
   if (!tpl) return null;
@@ -1056,6 +1133,7 @@ function renderBlogPost(post, prev, next) {
     ROZET_SINIF: ('platform-badge ' + badge[1]).trim(),
     YAYIN_TARIHI: blogDate(post.published_at || post.created_at),
     GUNCELLEME_TARIHI: blogDate(post.updated_at || post.published_at || post.created_at),
+    FAQ_JSONLD: blogFaqJsonLd(parts.body, url),
     TOC: parts.toc,
     // gövde veritabanında girintisiz durur; şablonun içinde hizalanır
     ICERIK: parts.body.split('\n').map((r) => (r.trim() ? '            ' + r.trim() : r)).join('\n'),
@@ -1136,6 +1214,53 @@ async function blogAll() {
     console.error('[blog] liste hatası', error && error.message);
     return null;
   }
+}
+
+/* /sitemap.xml — sabit sayfalar dosyadan, blog yazıları veritabanından.
+ *
+ * Sorun: sitemap.xml elle tutulan bir dosyaydı; yazılar panelden eklendiğinde
+ * ya da taslağa çekildiğinde dosya geride kalıyor, tarama araçları "sitemap
+ * yanlış" diyordu. Artık blog blokları her istekte tablodan üretiliyor.
+ *
+ * Veritabanına erişilemezse dosya olduğu gibi servis edilir (yedek davranış).
+ */
+async function serveSitemap(res) {
+  const dosya = path.join(ROOT, 'sitemap.xml');
+  let xml;
+  try {
+    xml = fs.readFileSync(dosya, 'utf8');
+  } catch (e) {
+    return notFound(res);
+  }
+
+  const rows = await blogAll();
+  if (!rows || !rows.length) return serveFile(res, dosya);   // yedek: dosyadaki hâli
+
+  // Dosyadaki blog kayıtlarını at, kalanları koru.
+  const korunan = xml.replace(/\s*<url>(?:(?!<\/url>)[\s\S])*?<loc>[^<]*\/blog\/[^<]*<\/loc>[\s\S]*?<\/url>/g, '');
+
+  const yazilar = rows.filter((p) => p.status === 'yayinda');
+  const bloklar = yazilar.map((p) => {
+    const tarih = String(p.updated_at || p.published_at || p.created_at || '').slice(0, 10) ||
+      new Date().toISOString().slice(0, 10);
+    return '  <url>\n' +
+      '    <loc>' + SITE_ORIGIN + '/blog/' + xmlEscape(p.slug) + '</loc>\n' +
+      '    <lastmod>' + tarih + '</lastmod>\n' +
+      '    <changefreq>monthly</changefreq>\n' +
+      '    <priority>0.6</priority>\n' +
+      '  </url>';
+  }).join('\n');
+
+  const cikti = korunan.replace(/\s*<\/urlset>\s*$/, '\n' + bloklar + '\n</urlset>\n');
+  return send(res, 200, 'application/xml; charset=utf-8', cikti, {
+    'Cache-Control': 'public, max-age=600',
+  });
+}
+
+function xmlEscape(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 }
 
 async function serveBlogIndex(res) {
@@ -1970,9 +2095,6 @@ const LEGACY_REDIRECTS = new Map([
   ['/category/e-ticaret', '/blog'],
   ['/category/pazaryerleri', '/blog'],
   ['/basari-hikayeleri', '/referanslar'],
-  // ChatGPT Ads sayfası yayından kaldırıldı (Eylül 2026); indekslenmiş adres
-  // ve dış bağlantılar en yakın hizmet sayfasına taşınır.
-  ['/chatgpt-reklam-yonetimi', '/pazaryeri-reklam-yonetimi'],
 ]);
 
 // Tek tek sayılmayan alt sayfalar için önek kuralı; tabloda birebir eşleşme
@@ -2062,6 +2184,10 @@ const server = http.createServer((req, res) => {
   if (CANONICAL_HOST && host && host !== CANONICAL_HOST && host !== 'localhost' && host !== '127.0.0.1') {
     return redirect(res, 'https://' + CANONICAL_HOST + urlPath + query);
   }
+  // Bilinen takma ad (apex) -> www. CANONICAL_HOST tanımlı değilken de çalışır.
+  if (!CANONICAL_HOST && host && HOST_ALIASES.has(host)) {
+    return redirect(res, 'https://' + PRIMARY_HOST + urlPath + query);
+  }
 
   // --- Eski site adresleri (301) ---
   const legacy = legacyTarget(urlPath);
@@ -2079,6 +2205,9 @@ const server = http.createServer((req, res) => {
   if (urlPath.length > 1 && urlPath.endsWith('/')) {
     return redirect(res, urlPath.slice(0, -1) + query);
   }
+
+  // --- Sitemap (blog blokları veritabanından tazelenir) ---
+  if (urlPath === '/sitemap.xml') return void serveSitemap(res);
 
   // --- Blog (içerik veritabanında; şablon dosyaları servis edilmez) ---
   if (urlPath === '/blog') return void serveBlogIndex(res);

@@ -2295,3 +2295,24 @@ a:hover .card-link::after {
     display: none;
   }
 }
+
+/* Blog yazısı görselleri (ekran görüntüsü + açıklama satırı) */
+.blog-figure {
+  margin: 34px 0;
+}
+
+.blog-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
+}
+
+.blog-figure figcaption {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
