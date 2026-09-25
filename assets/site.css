@@ -69,11 +69,13 @@
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;
+  overflow-x: clip; /* hidden sticky'yi bozar; clip kaydırma kabı oluşturmaz */
 }
 
 body {
   margin: 0;
   overflow-x: hidden;
+  overflow-x: clip;
   background: var(--paper);
   color: var(--ink);
   font-family: "DM Sans", "Helvetica Neue", Arial, sans-serif;
@@ -1538,6 +1540,8 @@ a:hover .card-link::after {
   position: sticky;
   top: 110px;
   align-self: start;
+  max-height: calc(100vh - 130px);
+  overflow-y: auto;
 }
 
 .content-aside nav {
@@ -1553,7 +1557,8 @@ a:hover .card-link::after {
   font-weight: 700;
 }
 
-.content-aside a:hover {
+.content-aside a:hover,
+.content-aside a.is-active {
   border-color: var(--orange);
   color: var(--ink);
 }
@@ -2075,6 +2080,11 @@ a:hover .card-link::after {
   .proof-panel,
   .content-aside {
     position: static;
+  }
+
+  .content-aside {
+    max-height: none;
+    overflow: visible;
   }
 
   .logo-strip {

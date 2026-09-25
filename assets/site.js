@@ -574,12 +574,55 @@
   }
 
   /* ------------------------------------------------------------------ *
+   * "Bu sayfada" menüsü: okunan bölümün bağlantısını işaretler
+   * ------------------------------------------------------------------ */
+  function initPageToc() {
+    var links = Array.prototype.slice.call(
+      document.querySelectorAll('.content-aside nav a[href^="#"]')
+    );
+    var sections = links
+      .map(function (link) {
+        return document.getElementById(link.getAttribute("href").slice(1));
+      })
+      .filter(Boolean);
+    if (!sections.length) return;
+
+    var ticking = false;
+    function update() {
+      ticking = false;
+      var line = window.innerHeight * 0.3;
+      var current = sections[0];
+      sections.forEach(function (section) {
+        if (section.getBoundingClientRect().top <= line) current = section;
+      });
+      links.forEach(function (link) {
+        var active = link.getAttribute("href") === "#" + current.id;
+        link.classList.toggle("is-active", active);
+        if (active) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+      });
+    }
+
+    window.addEventListener(
+      "scroll",
+      function () {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(update);
+      },
+      { passive: true }
+    );
+    update();
+  }
+
+  /* ------------------------------------------------------------------ *
    * 6) Başlangıç
    * ------------------------------------------------------------------ */
   function init() {
     initNav();
     initStickyHeader();
     initDropdown();
+    initPageToc();
     document.querySelectorAll("[data-calculator]").forEach(initCalculator);
     initContactForm();
     initWhatsAppButton();
